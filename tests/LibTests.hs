@@ -14,7 +14,7 @@ import Data.Map (Map(..), empty, fromList, singleton)
 import Lib
     ( FLTL(..),
       simplfy,
-      fltlMealy, Truth(..), δ4, mealy )
+      fltlMealy, Truth(..), δ4, mealy, runMonitor )
 
 closedOpenFile = Prop 'e' `R` (Not (Prop 'o') :\/ ( Not (Prop 'e') `U` Prop 'c'))
 
@@ -59,4 +59,7 @@ mealyTests = testGroup "mealy"
             δ4 (FFalse, 'q')  @?= (Bot, FFalse)
         , testCase "mealy7" $
             run (auto (fltlMealy example) <~ source "qqq" )  @?= [(PTop, example), (PTop, example), (PTop, example)]
+        , testCase "run" $
+            let φ = G (Prop 'q') in 
+            runMonitor "qqq" φ @?=  [(PTop , φ),(PTop, φ),(PTop, φ)]
     ]

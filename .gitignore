@@ -38,3 +38,5 @@ cabal.project.local~
 .ionide
 
 *.pdf
+
+*.dot
