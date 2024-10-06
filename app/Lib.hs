@@ -236,8 +236,6 @@ simplfy f = decode $ nf trs (encode f)
 δ4 (f@(F φ), a) = δ4 (φ :\/ X f, a)
 δ4 (f@(G φ), a) = δ4 (φ :/\ Xweak f, a)
 
-countingMealy = unfoldMealy (\i x -> ((i, x), i + 1)) 0
-
 fltlMealy :: FLTL -> Mealy Char (Truth, FLTL)
 fltlMealy = unfoldMealy (\f a -> let (t, g) = δ4 (f, a) in ((t, g), g))
 
