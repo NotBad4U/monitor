@@ -1,0 +1,17 @@
+digraph {
+    false [color="#000000"];
+    "G 'q' and G not 'p' or X G 'q'" [color="#000000"];
+    "G not 'p' or X G 'q'" [color="#000000"];
+    false -> false [label="p/⊥"
+                   ,color="#28ff28"];
+    false -> false [label="q/⊥"
+                   ,color="#28ff28"];
+    "G 'q' and G not 'p' or X G 'q'" -> false [label="p/⊥"
+                                              ,color="#28ff28"];
+    "G 'q' and G not 'p' or X G 'q'" -> "G 'q' and G not 'p' or X G 'q'" [label="q/⊤p"
+                                                                         ,color="#28ff28"];
+    "G not 'p' or X G 'q'" -> "G 'q' and G not 'p' or X G 'q'" [label="p/⊥p"
+                                                               ,color="#28ff28"];
+    "G not 'p' or X G 'q'" -> "G not 'p' or X G 'q'" [label="q/⊤p"
+                                                     ,color="#28ff28"];
+}
