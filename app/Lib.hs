@@ -53,8 +53,8 @@ instance BoundedMeetSemiLattice Truth where
 
 instance Show Truth where
   show Top = "⊤"
-  show PTop = "⊤p"
-  show PBot = "⊥p"
+  show PTop = "⊤ₚ" 
+  show PBot = "⊥ₚ" 
   show Bot = "⊥"
 
 data FLTL
@@ -75,10 +75,10 @@ data FLTL
 instance Show FLTL where
   show TTrue = "true"
   show FFalse = "false"
-  show (Prop x) = show x
-  show (p :\/ q) = show p ++ " or " ++ show q
-  show (p :/\ q) = show p ++ " and " ++ show q
-  show (Not p) = "not " ++ show p
+  show (Prop x) = [x]
+  show (p :\/ q) = show p ++ " ∨ " ++ show q 
+  show (p :/\ q) = show p ++ " ∧ " ++ show q 
+  show (Not p) = "¬ " ++ show p 
   show (X p) = "X " ++ show p
   show (Xweak p) = "Xweak " ++ show p
   show (G p) = "G " ++ show p

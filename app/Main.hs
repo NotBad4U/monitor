@@ -26,7 +26,10 @@ mealyGraphParams :: G.GraphvizParams String String (Char, Truth) () String
 mealyGraphParams =
   G.defaultParams
     { G.fmtNode = \(v, vl) -> colorAttribute $ G.RGB 0 0 0,
-      G.fmtEdge = \(from, to, el) -> G.textLabel (labelEdge el) : colorAttribute (G.RGB 40 255 40)
+      G.fmtEdge = \(from, to, label@(letter, _truth)) -> case letter of 
+                                                          'p' -> G.textLabel (labelEdge label) : colorAttribute (G.RGB 255 0 0)
+                                                          'q' -> G.textLabel (labelEdge label) : colorAttribute (G.RGB 0 255 0)
+                                                          _ -> G.textLabel (labelEdge label) : colorAttribute (G.RGB 40 255 40)
     }
   where
     colorAttribute color = [G.Color $ G.toColorList [color]]
