@@ -174,7 +174,7 @@ This is possible because all FLTL4 formulas can be transformed into a Mealy mach
         dir: ttb,
         spacing: 1em,
         dtext(fill: cpurpD, weight: "bold")[property],
-        text(size: .9em, fill: cpurpD, $tack.r space square (A -> diamond B)$),
+        text(size: .9em, fill: cpurpD, $tack.rr space square (A -> diamond B)$),
       ),
       shape: fletcher.shapes.ellipse,
       fill: cpurp.lighten(90%),
@@ -304,27 +304,27 @@ $bb(B)_2$.
       [
         #fgrp[Boolean constants]
         $
-           semw(w tack.r "true") & = top \
-          semw(w tack.r "false") & = bot
+           semw(w tack.rr "true") & = top \
+          semw(w tack.rr "false") & = bot
         $
       ],
       [
         #fgrp[Boolean combinations]
         $
-               semw(w tack.r ¬φ) & = overline(semw(w tack.r φ)) \
-           semw(w tack.r φ or ψ) & = semw(w tack.r φ) union.sq semw(w tack.r ψ) \
-          semw(w tack.r φ and ψ) & = semw(w tack.r φ) inter.sq semw(w tack.r ψ)
+               semw(w tack.rr ¬φ) & = overline(semw(w tack.rr φ)) \
+           semw(w tack.rr φ or ψ) & = semw(w tack.rr φ) union.sq semw(w tack.rr ψ) \
+          semw(w tack.rr φ and ψ) & = semw(w tack.rr φ) inter.sq semw(w tack.rr ψ)
         $
       ],
 
       [
         #fgrp[atomic propositions]
         $
-           semw(w tack.r p) & = cases(
+           semw(w tack.rr p) & = cases(
                                 top & "if " p in a_0,
                                 bot & "if " p in.not a_0
                               ) \
-          semw(w tack.r ¬p) & = cases(
+          semw(w tack.rr ¬p) & = cases(
                                 top & "if " p in.not a_0,
                                 bot & "if " p in a_0
                               )
@@ -333,8 +333,8 @@ $bb(B)_2$.
       [
         #fgrp[(weak) next]
         $
-                    semw(w tack.r bold(X) φ) & = semw(w^1 tack.r φ) \
-          semw(w tack.r overline(bold(X)) φ) & = semw(w^1 tack.r φ)
+                    semw(w tack.rr bold(X) φ) & = semw(w^1 tack.rr φ) \
+          semw(w tack.rr overline(bold(X)) φ) & = semw(w^1 tack.rr φ)
         $
       ],
     )
@@ -342,23 +342,23 @@ $bb(B)_2$.
     #block(width: 100%)[
       #align(left, fgrp[until/release])
       $
-        semw(w tack.r φ bold("U") ψ) & = cases(
+        semw(w tack.rr φ bold("U") ψ) & = cases(
                                          gap: #.7em,
                                          #mcase(
                                            $top$,
-                                           $"there is a " k >= 0 : semw(w^k tack.r ψ) = top " and"$,
-                                           $"for all " l " with " 0 <= l < k : semw(w^l tack.r φ) = top$,
+                                           $"there is a " k >= 0 : semw(w^k tack.rr ψ) = top " and"$,
+                                           $"for all " l " with " 0 <= l < k : semw(w^l tack.rr φ) = top$,
                                          ),
                                          #scase($bot$, $"else"$),
                                        ) \
                                      \
-        semw(w tack.r φ bold("R") ψ) & = cases(
+        semw(w tack.rr φ bold("R") ψ) & = cases(
                                          gap: #.7em,
                                          #mcase(
                                            $top$,
-                                           $"for all " k >= 0 : semw(w^k tack.r ψ) = top " or"$,
-                                           $"there is a " k >= 0 : semw(w^k tack.r φ) = top " and"$,
-                                           $"for all " l " with " 0 <= l <= k : semw(w^l tack.r ψ) = top$,
+                                           $"for all " k >= 0 : semw(w^k tack.rr ψ) = top " or"$,
+                                           $"there is a " k >= 0 : semw(w^k tack.rr φ) = top " and"$,
+                                           $"for all " l " with " 0 <= l <= k : semw(w^l tack.rr ψ) = top$,
                                          ),
                                          #scase($bot$, $"else"$),
                                        )
@@ -370,7 +370,7 @@ $bb(B)_2$.
 
 #definition("Semantics of LTL", label: <def:ltl-sem>)[
   The semantics of LTL formulae over infinite traces $w = a_0 a_1 dots ∈ Σ^ω$ is given by the
-  function $lr(⟦ - tack.r - ⟧)_ω : Σ^ω × "LTL" -> bb(B)_2$, which is defined inductively as shown
+  function $lr(⟦ - tack.rr - ⟧)_ω : Σ^ω × "LTL" -> bb(B)_2$, which is defined inductively as shown
   in @fig-ltl-sem.
 ]
 
@@ -393,36 +393,36 @@ satisfying $ψ$ within $u$.
     #block(width: 100%)[
       #align(left, fgrp[(weak) next])
       $
-                  semf(u tack.r bold(X) φ) & = cases(
-                                               semf(u^1 tack.r φ) & "if " u^1 != ϵ,
+                  semf(u tack.rr bold(X) φ) & = cases(
+                                               semf(u^1 tack.rr φ) & "if " u^1 != ϵ,
                                                bot & "otherwise"
                                              ) \
                                            \
-        semf(u tack.r overline(bold(X)) φ) & = cases(
-                                               semf(u^1 tack.r φ) & "if " u^1 != ϵ,
+        semf(u tack.rr overline(bold(X)) φ) & = cases(
+                                               semf(u^1 tack.rr φ) & "if " u^1 != ϵ,
                                                top & "otherwise"
                                              )
       $
 
       #align(left, fgrp[until/release])
       $
-        semf(u tack.r φ bold("U") ψ) & = cases(
+        semf(u tack.rr φ bold("U") ψ) & = cases(
                                          gap: #.7em,
                                          #mcase(
                                            $top$,
-                                           $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.r ψ) = top " and"$,
-                                           $"for all " l " with " 0 <= l < k : semf(u^l tack.r φ) = top$,
+                                           $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.rr ψ) = top " and"$,
+                                           $"for all " l " with " 0 <= l < k : semf(u^l tack.rr φ) = top$,
                                          ),
                                          #scase($bot$, $"else"$),
                                        ) \
                                      \
-        semf(u tack.r φ bold("R") ψ) & = cases(
+        semf(u tack.rr φ bold("R") ψ) & = cases(
                                          gap: #.7em,
                                          #mcase(
                                            $top$,
-                                           $"for all " k ∈ {0, dots n-1} : semf(u^k tack.r ψ) = top " or"$,
-                                           $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.r φ) = top " and"$,
-                                           $"for all " l " with " 0 <= l <= k : semf(u^l tack.r ψ) = top$,
+                                           $"for all " k ∈ {0, dots n-1} : semf(u^k tack.rr ψ) = top " or"$,
+                                           $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.rr φ) = top " and"$,
+                                           $"for all " l " with " 0 <= l <= k : semf(u^l tack.rr ψ) = top$,
                                          ),
                                          #scase($bot$, $"else"$),
                                        )
@@ -434,7 +434,7 @@ satisfying $ψ$ within $u$.
 
 #definition("Semantics of FLTL", label: <def:fltl-sem>)[
   Let $u = a_0 dots a_(n-1) ∈ Σ^*$ denote a finite trace of length $n$, with $u != ϵ$. The truth
-  value of an FLTL formula $φ$ w.r.t. $u$, denoted with $semf(u tack.r φ)$, is an element of
+  value of an FLTL formula $φ$ w.r.t. $u$, denoted with $semf(u tack.rr φ)$, is an element of
   $bb(B)_2$ and is inductively defined as follows: Boolean constants, Boolean combinations and
   atomic propositions are defined as for LTL (see @fig-ltl-sem, taking $u$ instead of $w$).
   Until/release and (weak) next are defined as shown in @fig-fltl-sem.
@@ -500,14 +500,14 @@ precisely what we expect from such a semantics.
       node((2.5, 1.25), dtext(fill: credD, size: .74em)[end of trace]),
     ),
     $
-      semf(u tack.r bold(X) φ) = bot quad "and" quad semf(u tack.r overline(bold(X)) φ) = top
+      semf(u tack.rr bold(X) φ) = bot quad "and" quad semf(u tack.rr overline(bold(X)) φ) = top
       quad "for every " φ, "whenever " u^1 = ϵ
     $,
   ),
   caption: [
     The strong next falls over the end of the trace. FLTL decides $bold(X)$ and
     $overline(bold(X))$ from the position of the horizon alone, so
-    $semf(u tack.r bold(X) "true") = bot$ even though every continuation satisfies it.
+    $semf(u tack.rr bold(X) "true") = bot$ even though every continuation satisfies it.
   ],
 ) <fig-horizon>
 
@@ -586,10 +586,8 @@ maxims.
   finite trace must already be evaluated to that verdict — there is nothing left
   to wait for.
 
-== Syntax
+== Syntax and Semantics
 
-The four maxims above fix the truth domain: two definitive verdicts, two presumable
-ones, and a complementation pairing them so that no verdict is its own complement.
 
 #definition([Truth domain $bb(B)_4$], label: <def:b4>)[
   The truth domain of #fltl4 is the four valued set
@@ -623,11 +621,9 @@ report a verdict that is not yet final.
     quad "where " b ∈ bb(B)_4
   $
   In contrast to LTL (@def:ltl-syntax), the constants range over the whole of
-  $bb(B)_4$, and $bold(F)$ and $bold(G)$ are taken as primitive operators rather than
+  $bb(B)_4$, which is oftenconsidered in the context of multi-valued logics , and $bold(F)$ and $bold(G)$ are taken as primitive operators rather than
   as abbreviations.
 ]
-
-== Semantics
 
 #figure(
   placement: top,
@@ -640,27 +636,27 @@ report a verdict that is not yet final.
       [
         #fgrp[Boolean constants]
         $
-           sem(w tack.r "true") & = top \
-          sem(w tack.r "false") & = bot
+           sem(w tack.rr "true") & = top \
+          sem(w tack.rr "false") & = bot
         $
       ],
       [
         #fgrp[Boolean combinations]
         $
-               sem(w tack.r ¬φ) & = overline(sem(w tack.r φ)) \
-           sem(w tack.r φ or ψ) & = sem(w tack.r φ) union.sq sem(w tack.r ψ) \
-          sem(w tack.r φ and ψ) & = sem(w tack.r φ) inter.sq sem(w tack.r ψ)
+               sem(w tack.rr ¬φ) & = overline(sem(w tack.rr φ)) \
+           sem(w tack.rr φ or ψ) & = sem(w tack.rr φ) union.sq sem(w tack.rr ψ) \
+          sem(w tack.rr φ and ψ) & = sem(w tack.rr φ) inter.sq sem(w tack.rr ψ)
         $
       ],
 
       [
         #fgrp[atomic propositions]
         $
-           sem(w tack.r p) & = cases(
+           sem(w tack.rr p) & = cases(
                                top & "if " p in w_1,
                                bot & "if " p in.not w_1
                              ) \
-          sem(w tack.r ¬p) & = cases(
+          sem(w tack.rr ¬p) & = cases(
                                top & "if " p in.not w_1,
                                bot & "if " p in w_1
                              )
@@ -669,12 +665,12 @@ report a verdict that is not yet final.
       [
         #fgrp[(weak) next]
         $
-                    sem(w tack.r bold(X) φ) & = cases(
-                                                sem(w^2 tack.r φ) & "if " abs(w) > 1,
+                    sem(w tack.rr bold(X) φ) & = cases(
+                                                sem(w^2 tack.rr φ) & "if " abs(w) > 1,
                                                 bot^p & "else"
                                               ) \
-          sem(w tack.r overline(bold(X)) φ) & = cases(
-                                                sem(w^2 tack.r φ) & "if " abs(w) > 1,
+          sem(w tack.rr overline(bold(X)) φ) & = cases(
+                                                sem(w^2 tack.rr φ) & "if " abs(w) > 1,
                                                 top^p & "else"
                                               )
         $
@@ -684,25 +680,25 @@ report a verdict that is not yet final.
     #block(width: 100%)[
       #align(left, fgrp[until/release])
       $
-        sem(w tack.r φ bold("U") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
-                                        sem(w^i tack.r ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.r φ)
+        sem(w tack.rr φ bold("U") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+                                        sem(w^i tack.rr ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
                                       )
                                       union.sq (
-                                        bot^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r φ)
+                                        bot^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
                                       ) \
                                     \
-        sem(w tack.r φ bold("R") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
-                                        sem(w^i tack.r φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.r ψ)
+        sem(w tack.rr φ bold("R") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+                                        sem(w^i tack.rr φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.rr ψ)
                                       )
                                       union.sq (
-                                        top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r ψ)
+                                        top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr ψ)
                                       )
       $
 
       #align(left, fgrp[finally/globally])
       $
-        sem(w tack.r bold(F) φ) & = bot^p union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r φ) \
-        sem(w tack.r bold(G) φ) & = top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r φ)
+        sem(w tack.rr bold(F) φ) & = bot^p union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ) \
+        sem(w tack.rr bold(G) φ) & = top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
       $
     ]
   ],
@@ -710,10 +706,10 @@ report a verdict that is not yet final.
 ) <fig-fltl4-sem>
 
 #definition([Semantics of #fltl4], label: <def:fltl4-sem>)[
-  Let $w = w_1 dots w_(abs(w)) ∈ Σ^+$ denote a non-empty finite trace, and let $w^i$
-  denote its suffix starting at position $i$. The truth value of an #fltl4 formula
-  $φ$ w.r.t. $w$, denoted with $sem(w tack.r φ)$, is given by the function
-  $ sem(- tack.r -) : Σ^+ × #fltl4 -> bb(B)_4 $
+  The truth value of an #fltl4 formula $φ$ w.r.t. $w$, denoted with $sem(w tack.rr φ)$, is given by the function
+  $
+    sem(- tack.rr -) : Σ^+ × #fltl4 -> bb(B)_4
+  $
   which is defined inductively as shown in @fig-fltl4-sem.
 ]
 
@@ -725,17 +721,19 @@ which is what impartiality asks for.
 
 == Monitor as a Mealy machine
 
-For each temporal formula registered to the `monitor` it is then compiled into a Mealy machine.
-Our Mealy machine is the 6-tuple  $(S, s_0, Σ, Γ, δ)$:
+A monitor is a procedure that consumes the input letter by letter and outputs the semantics of the trace read so far with respect to the formula the monitor was built for.
+For each temporal formula registered to the `monitor` it is then compiled into a Mealy machine, also called ﬁnite-state machine (FSM).
+
+#definition("Mealy machine", label: <def:mealy>)[
+A Mealy machine is a tuple  $cal(M) = (S, s_0, Σ, Γ, δ)$:
 - $S$ a ﬁnite set of states,
 - a start state $s_0 ∈ S$,
-- a finite set called the input alphabet Σ,
-- Γ is the output alphabet and
-- a transition function $delta_4 : Sigma times "LTL" -> bb(B)_4 times "LTL"$
+- Σ is a finite set called the input alphabet,
+- Γ is the output alphabet and,
+- $delta : Sigma times S -> Gamma times S$ is the transition function.
+]
 
-$
-  delta_4 : Sigma times "LTL" -> bb(B)_4 times "LTL"
-$
+
 
 #grid(
   columns: (1fr, 1fr),
@@ -764,9 +762,12 @@ $
   $,
 )
 
-$
-  "smplfy" : "LTL" -> "LTL"
-$
+#theorem()[
+  Let $phi$ be an #fltl4 formula. Then there is an effective procedure constructing an an FSM $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$ such that for all $u ∈ Σ^*$ the following holds:
+  $
+     delta_4(s,u) = [ u tack.rr phi ]_4
+  $
+]
 
 = Development overview <sec-dev>
 
@@ -885,8 +886,8 @@ evlFLTL4 a (G p) = evlFLTL4 a (p :/\ Xweak (G p))
 //   $phi = ⊤ₚ$ gives $phi or not phi = ⊤ₚ ⊔ ⊥ₚ = ⊤ₚ != ⊤$ and
 //   $phi and not phi = ⊤ₚ ⊓ ⊥ₚ = ⊥ₚ != ⊥$. Likewise, temporal operators whose
 //   constant argument evaluates to a _presumable_ value are left un-folded, since
-//   $⊤ₚ, ⊥ₚ$ are not formulae: $sem(w tack.r F "false") = ⊥ₚ != ⊥$ and
-//   $sem(w tack.r G "true") = ⊤ₚ != ⊤$, whereas the absorbing cases (15)–(18) do
+//   $⊤ₚ, ⊥ₚ$ are not formulae: $sem(w tack.rr F "false") = ⊥ₚ != ⊥$ and
+//   $sem(w tack.rr G "true") = ⊤ₚ != ⊤$, whereas the absorbing cases (15)–(18) do
 //   collapse to $"true" slash "false"$. Every rule above was validated against the
 //   semantics $sem(-)$ and the step relation $delta_4$.
 // ]
