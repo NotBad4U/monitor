@@ -248,7 +248,7 @@ and the Mealy machine a formula is compiled into.
 
 For the remainder of this article, let $bold("AP")$ be a finite and non-empty set of atomic propositions and
 $Σ=2^bold("AP")$ a finite alphabet. We write $a_i$ for any single element of $Σ$, i.e. $a_i$ is a possibly empty subset
-of propositions taken from AP. Finite traces (which we call interchangeably words) over $Σ$ are elements of $Sigma_∗$, usually denoted with $u,u',u_1,u_2, dots$. The empty trace is denoted with ϵ. Infinite traces are elements of $Σ_ω$, usually denoted with $w, w', w_1, w_2, dots$ For some infinite trace $w = a_0a_1 ...$, we denote with $w^i$ the suffix $a_i, a_(i+1) dots$ . In case of a finite trace $u=a_0a_1 ...a_(n−1)$, $u^i$ denotes the suffix $a_i a_(i+1) ...a_(n−1)$ for $0 ≤ i < n$ and the empty string ϵ for $n ≤ i$.
+of propositions taken from AP. Finite traces (which we call interchangeably words) over $Σ$ are elements of $Sigma^∗$, usually denoted with $u,u',u_1,u_2, dots$. The empty trace is denoted with ϵ. Infinite traces are elements of $Σ^ω$, usually denoted with $w, w', w_1, w_2, dots$ For some infinite trace $w = a_0a_1 ...$, we denote with $w^i$ the suffix $a_i, a_(i+1) dots$ . In case of a finite trace $u=a_0a_1 ...a_(n−1)$, $u^i$ denotes the suffix $a_i a_(i+1) ...a_(n−1)$ for $0 ≤ i < n$ and the empty string ϵ for $n ≤ i$.
 
 == Truth domain
 
@@ -263,9 +263,9 @@ As the common denominator of the semantics for the subsequently defined logics i
 
 We consider the traditional two-valued semantics that we denotes $bb(B)_2$ with truth values `true`, denoted with $top$, and `false`, denoted with $bot$. Truth values should be comparable and combinable in terms of Boolean operations expressed by the connectives of the underlying logic, we interpret these truth values as elements of a _de Morgan_ lattice.
 
-#definition("Truth domain")[
+#definition("Truth domain", label: <def:truth-dom>)[
   We call $cal(D)$ a _truth domain_, if it is a finite de Morgan lattice. The two valued truth domain $bb(B)_2 = { top, bot}$ is a Boolean lattice with $bot subset.sq top$ and $inter.sq$ and $union.sq$ definedin the expected manner.
-] <def:truth-dom>
+]
 
 == LTL and FLTL
 
@@ -294,7 +294,7 @@ LTL formulae over infinite traces are interpreted as usual over the two valued t
 $bb(B)_2$.
 
 #figure(
-  placement: bottom,
+  placement: top,
   align(center)[
     #grid(
       columns: (auto, auto),
@@ -368,7 +368,7 @@ $bb(B)_2$.
   caption: [Semantics of LTL formulae over an infinite traces $w = a_0 a_1 dots ∈ Σ^ω$],
 ) <fig-ltl-sem>
 
-#definition("Semantics of LTL @ltl-book", label: <def:ltl-sem>)[
+#definition("Semantics of LTL", label: <def:ltl-sem>)[
   The semantics of LTL formulae over infinite traces $w = a_0 a_1 dots ∈ Σ^ω$ is given by the
   function $lr(⟦ - tack.r - ⟧)_ω : Σ^ω × "LTL" -> bb(B)_2$, which is defined inductively as shown
   in @fig-ltl-sem.
@@ -444,32 +444,27 @@ satisfying $ψ$ within $u$.
 
 = The logic #fltl4 <sec-fltl4>
 
-FLTL (@def:fltl-sem) reads an LTL formula on a finite word, and it reads it as if that word were
-all there will ever be. That is the right reading for a _completed_ run -- a terminated execution,
-a log that will not grow again -- and it is the wrong one for runtime verification, where the word
-in hand is a _prefix_ of a run still being produced: the next event has not arrived _yet_, which is
-not the same as not existing. Two failures follow, both analysed in @rv-ltl: the strong next has
-to guess, and a two-valued verdict can never be provisional.
+FLTL interprets LTL formulae over finite traces.
+That is the right reading for a _completed_ run of the execution of a program that terminated and that
+no more new event are expected. However, it is a wrong approach for runtime verification, where the trace
+in hand is a _prefix_ of a run still being produced i.e. the next event has not arrived yet.
+Two failures follow:
+- the strong next $bold(X) phi$ has to infer;
+- and a two-valued verdict can never be provisional.
 
-_The strong next must answer for a state it cannot see._ At the end of the trace, $bold(X) φ$ and
-$overline(bold(X)) φ$ both point past the last observed letter (@fig-horizon), and FLTL settles the
-question by fiat: the strong next is false and the weak next is true, whatever $φ$ says. The
-verdict then reports the _length_ of the trace rather than the behaviour of the system. Worse, it
-is sometimes demonstrably wrong: $semf(u tack.r bold(X) "true") = bot$ although _every_
-continuation whatsoever satisfies $bold(X) "true"$ -- the answer is already determined, and FLTL
-returns the opposite one.
+The second aspect that expose that with only $top$ and $bot$ available, every verdict is final.
+A two-valued semantics has to commit after each event even when the run could still go either way.
+Take the request/acknowledge property $φ ≡ bold(G) (r -> bold(F) a)$ of @fig-futures. If the prefix
+ends on a request $r$, FLTL evaluates $phi$ to $bot$, but it is too early to say that. $bot$ reads as
+_the property is violated_, whereas here we are simply still waiting for the acknowledgement $a$,
+which may well arrive later. The honest answer is not a definitive false but something weaker:
+_false so far_, or _possibly true_.
 
-_With only $top$ and $bot$ available, every verdict is final._ A two-valued semantics has to commit
-after each event even when the run could still go either way. Take the request/acknowledge property
-$φ ≡ bold(G) (r -> bold(F) a)$ of @fig-futures: after a trailing $r$, FLTL answers $bot$ -- the very
-symbol it uses for a property that can never recover -- and yet a continuation containing an $a$
-satisfies $φ$. The monitor has committed to an answer the future will overturn, and it does
-overturn it: the verdict oscillates for as long as requests keep arriving, and nothing in the
-output separates _broken for good_ from _still waiting for an acknowledgement_.
-
-#fltl4 keeps FLTL's operators and its complementation and gives up only the two-valuedness: each
-verdict is split into a definitive and a presumable one over the domain $bb(B)_4$. The four maxims
-below state exactly what is being asked of that semantics.
+This is what #fltl4 provides. It keeps the operators of FLTL and its complementation, and changes
+one thing only: instead of two truth values it uses four, the domain $bb(B)_4$. Each of $top$ and
+$bot$ is split in two, a definitive verdict and a presumable one, so that a monitor can answer
+_true (or false) for now_ while leaving room for the rest of the run. The four maxims below say
+precisely what we expect from such a semantics.
 
 #figure(
   placement: top,
@@ -593,63 +588,140 @@ maxims.
 
 == Syntax
 
-Let $Σ = 2^("AP")$ be the finite alphabet, p ∈ AP an atomic proposition, a ∈ Σ a letter. We define the syntax of the #fltl4 logic:
+The four maxims above fix the truth domain: two definitive verdicts, two presumable
+ones, and a complementation pairing them so that no verdict is its own complement.
 
-$
-  bb(B)_4 & ::= {⊤, ⊤ₚ, ⊥ₚ, ⊥} \
-     φ, ψ & ::= bb(B)_4 | p | φ and ψ | φ or ψ | ¬ φ | bold(X) φ | overline(bold(X)) φ | φ bold("U") ψ | φ bold("R") ψ
-            | φ bold("G") ψ | bold("F") ψ
-$
+#definition([Truth domain $bb(B)_4$], label: <def:b4>)[
+  The truth domain of #fltl4 is the four valued set
+  $ bb(B)_4 = { top, top^p, bot^p, bot } $
+  where $top$ (resp. $bot$) denotes the definitive verdict _true_ (resp. _false_) and
+  $top^p$ (resp. $bot^p$) the presumable verdict _presumably true_ (resp.
+  _presumably false_). It is a finite distributive de Morgan lattice
+  $(bb(B)_4, subset.sq)$, hence a truth domain in the sense of @def:truth-dom, ordered
+  by
+  $ bot subset.sq bot^p subset.sq top^p subset.sq top $
+  with $inter.sq$ and $union.sq$ the meet and join of that order, and with
+  complementation
+  $
+    overline(top) = bot quad overline(top^p) = bot^p quad overline(bot^p) = top^p quad overline(bot) = top
+  $
+]
 
-The truth domains $bb(B)_4$  is:
-- a complete distributed lattice $(bb(B)_4, ⊑)$ with the following inclusion order $⊥ ⊑ ⊥p ⊑ ⊤ₚ ⊑ ⊤$
-- and the complement computed as follows:
-$
-  overline(⊤) = ⊥ quad overline(⊤ₚ) = ⊥ₚ quad overline(⊥ₚ) = ⊤ₚ quad overline(⊥) = ⊤
-$
+Note that $bb(B)_4$ is _not_ a Boolean lattice: the presumable verdicts satisfy
+$top^p union.sq overline(top^p) = top^p union.sq bot^p = top^p != top$, and dually
+$bot^p inter.sq overline(bot^p) = bot^p != bot$. This is precisely what lets a monitor
+report a verdict that is not yet final.
 
-However, $bb(B)_4$ is not a boolean lattice.
+#definition([Syntax of #fltl4 formulae], label: <def:fltl4-syntax>)[
+  Let $Σ = 2^bold("AP")$ be the finite alphabet built over a finite set of atomic
+  propositions $bold("AP")$, with $p ∈ bold("AP")$ an atomic proposition and
+  $a ∈ Σ$ a letter. The set of #fltl4 formulae is inductively defined by the following
+  grammar:
+  $
+    φ, ψ ::= b | p | ¬ φ | φ and ψ | φ or ψ | bold(X) φ | overline(bold(X)) φ
+           | φ bold("U") ψ | φ bold("R") ψ | bold(F) φ | bold(G) φ
+    quad "where " b ∈ bb(B)_4
+  $
+  In contrast to LTL (@def:ltl-syntax), the constants range over the whole of
+  $bb(B)_4$, and $bold(F)$ and $bold(G)$ are taken as primitive operators rather than
+  as abbreviations.
+]
 
 == Semantics
 
-$
-  sem(-)_ₖ : Σ^+ × "LTL" → bb(B)_4
-$
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 1.5em,
-  $
-         sem(w tack.r "true") & = top \
-        sem(w tack.r "false") & = bot \
-              sem(w tack.r p) & = cases(
-                                  top & "if " p in w_1,
-                                  bot & "if " p in.not w_1
-                                ) \
-          sem(w tack.r not p) & = cases(
-                                  top & "if " p in.not w_1,
-                                  bot & "if " p in w_1
-                                ) \
-        sem(w tack.r not phi) & = overline(sem(w tack.r phi)) \
-     sem(w tack.r phi or psi) & = sem(w tack.r phi) union.sq sem(w tack.r psi) \
-    sem(w tack.r phi and psi) & = sem(w tack.r phi) inter.sq sem(w tack.r psi)
-  $,
-  $
-    sem(w tack.r X phi) &= cases(
-      sem(w^2 tack.r phi) & "if " abs(w) > 1,
-      bot^p & "else"
-    ) \
-    sem(w tack.r overline(X) phi) &= cases(
-      sem(w^2 tack.r phi) & "if " abs(w) > 1,
-      top^p & "else"
-    ) \
-    sem(w tack.r phi U psi) &= union.sq.big_(1 <= i <= abs(w)) ( sem(w^i tack.r psi) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.r phi) ) \
-    & quad union.sq ( bot^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r phi) ) \
-    sem(w tack.r phi R psi) &= union.sq.big_(1 <= i <= abs(w)) ( sem(w^i tack.r phi) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.r psi) ) \
-    & quad union.sq ( top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r psi) ) \
-    sem(w tack.r F phi) &= bot^p union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r phi) \
-    sem(w tack.r G phi) &= top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r phi)
-  $,
-)
+#figure(
+  placement: top,
+  align(center)[
+    #grid(
+      columns: (auto, auto),
+      column-gutter: 2.2em,
+      row-gutter: 1.4em,
+      align: left,
+      [
+        #fgrp[Boolean constants]
+        $
+           sem(w tack.r "true") & = top \
+          sem(w tack.r "false") & = bot
+        $
+      ],
+      [
+        #fgrp[Boolean combinations]
+        $
+               sem(w tack.r ¬φ) & = overline(sem(w tack.r φ)) \
+           sem(w tack.r φ or ψ) & = sem(w tack.r φ) union.sq sem(w tack.r ψ) \
+          sem(w tack.r φ and ψ) & = sem(w tack.r φ) inter.sq sem(w tack.r ψ)
+        $
+      ],
+
+      [
+        #fgrp[atomic propositions]
+        $
+           sem(w tack.r p) & = cases(
+                               top & "if " p in w_1,
+                               bot & "if " p in.not w_1
+                             ) \
+          sem(w tack.r ¬p) & = cases(
+                               top & "if " p in.not w_1,
+                               bot & "if " p in w_1
+                             )
+        $
+      ],
+      [
+        #fgrp[(weak) next]
+        $
+                    sem(w tack.r bold(X) φ) & = cases(
+                                                sem(w^2 tack.r φ) & "if " abs(w) > 1,
+                                                bot^p & "else"
+                                              ) \
+          sem(w tack.r overline(bold(X)) φ) & = cases(
+                                                sem(w^2 tack.r φ) & "if " abs(w) > 1,
+                                                top^p & "else"
+                                              )
+        $
+      ],
+    )
+
+    #block(width: 100%)[
+      #align(left, fgrp[until/release])
+      $
+        sem(w tack.r φ bold("U") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+                                        sem(w^i tack.r ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.r φ)
+                                      )
+                                      union.sq (
+                                        bot^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r φ)
+                                      ) \
+                                    \
+        sem(w tack.r φ bold("R") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+                                        sem(w^i tack.r φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.r ψ)
+                                      )
+                                      union.sq (
+                                        top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r ψ)
+                                      )
+      $
+
+      #align(left, fgrp[finally/globally])
+      $
+        sem(w tack.r bold(F) φ) & = bot^p union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r φ) \
+        sem(w tack.r bold(G) φ) & = top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.r φ)
+      $
+    ]
+  ],
+  caption: [Semantics of #fltl4 formulae over a non-empty finite trace $w = w_1 dots w_(abs(w)) ∈ Σ^+$],
+) <fig-fltl4-sem>
+
+#definition([Semantics of #fltl4], label: <def:fltl4-sem>)[
+  Let $w = w_1 dots w_(abs(w)) ∈ Σ^+$ denote a non-empty finite trace, and let $w^i$
+  denote its suffix starting at position $i$. The truth value of an #fltl4 formula
+  $φ$ w.r.t. $w$, denoted with $sem(w tack.r φ)$, is given by the function
+  $ sem(- tack.r -) : Σ^+ × #fltl4 -> bb(B)_4 $
+  which is defined inductively as shown in @fig-fltl4-sem.
+]
+
+Where FLTL falls back on $bot$ and $top$ when the trace runs out (@fig-fltl4-sem, cases
+$abs(w) = 1$ for the next operators, and the second disjunct of until/release), #fltl4
+falls back on the presumable verdicts $bot^p$ and $top^p$ instead. A definitive verdict
+is therefore emitted only when the observed prefix alone already settles the formula,
+which is what impartiality asks for.
 
 == Monitor as a Mealy machine
 
