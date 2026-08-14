@@ -1,9 +1,11 @@
 #import "@preview/mmdr:0.2.2": mermaid
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
 #import "@preview/codly:1.3.0"
-#import "@preview/curryst:0.6.0": prooftree, rule, rule-set
 #import "@preview/acrostiche:0.7.0": *
 #import "@preview/theoretic:0.4.0"
+#import "@preview/xarrow:0.4.0": xarrow, xarrowSquiggly, xarrowTwoHead
+#import "@preview/curryst:0.6.0": prooftree, rule, rule-set
+
 #import theoretic.presets.basic: * // this will automatically load predefined styled environments
 #show ref: theoretic.show-ref      // this is necessary for references to theorems to work
 
@@ -11,12 +13,18 @@
 #show ref: theoretic.show-ref      // this is necessary for references to theorems to work
 
 
+
 // a Mealy machine drawn as a box
-#let mbox = (pos, lbl) => node(pos, lbl, shape: fletcher.shapes.rect, stroke: .6pt, inset: 9pt)
-#let compbox = enc => node(enclose: enc, stroke: (paint: gray, dash: "dashed", thickness: .6pt), inset: 16pt)
+#let mbox = (pos, lbl, ..args) => node(pos, lbl, shape: fletcher.shapes.rect, stroke: .6pt, inset: 9pt, ..args)
+#let compbox = (enc, inset: 16pt, ..args) => node(
+  enclose: enc,
+  stroke: (paint: gray, dash: "dashed", thickness: .6pt),
+  inset: inset,
+  ..args,
+)
 
 #let fltl4 = `FLTL₄`
-
+#let M4 = $cal(M)_4^phi$
 
 #set document(title: [Reactor: a #fltl4 monitor])
 
@@ -33,6 +41,7 @@
 
 #init-acronyms((
   "RV": ("Runtime Verification", "Runtime Verifications"),
+  "FSM": ("Finite State Machine", "Finite State Machines"),
 ))
 
 #title()
@@ -118,6 +127,14 @@
 #let sem(x) = $lr(⟦ #x ⟧)_4$ // semantic bracket  ⟦ … ⟧₄
 #let semw(x) = $lr(⟦ #x ⟧)_ω$ // semantic bracket ⟦ … ⟧_ω : LTL over infinite traces
 #let semf(x) = $lr(⟦ #x ⟧)_F$ // semantic bracket ⟦ … ⟧_F : FLTL over finite traces
+
+// ---------- profunctor / arrow notation ----------
+#let Mly = $bold("Mly")$ // the category of Mealy behaviours
+#let seq = $thin class("binary", #text(size: 1em, baseline: .1em)[⨟]) thin$ // series composition
+#let fan(m, n) = $lr(⟨ #m, #n ⟩)$ // fan-out: one input, paired outputs
+#let tr(a, b) = $xarrow(sym: -->, #a|#b)$ // s --a|b--> s′
+#let beh = $mu$ // the behaviour map into the final coalgebra
+// ---------- end profunctor notation ----------
 
 // the small bold rubric heading a group of equations inside a semantics figure
 #let fgrp = body => text(weight: "bold", size: .95em, body)
@@ -248,7 +265,7 @@ and the Mealy machine a formula is compiled into.
 
 For the remainder of this article, let $bold("AP")$ be a finite and non-empty set of atomic propositions and
 $Σ=2^bold("AP")$ a finite alphabet. We write $a_i$ for any single element of $Σ$, i.e. $a_i$ is a possibly empty subset
-of propositions taken from AP. Finite traces (which we call interchangeably words) over $Σ$ are elements of $Sigma^∗$, usually denoted with $u,u',u_1,u_2, dots$. The empty trace is denoted with ϵ. Infinite traces are elements of $Σ^ω$, usually denoted with $w, w', w_1, w_2, dots$ For some infinite trace $w = a_0a_1 ...$, we denote with $w^i$ the suffix $a_i, a_(i+1) dots$ . In case of a finite trace $u=a_0a_1 ...a_(n−1)$, $u^i$ denotes the suffix $a_i a_(i+1) ...a_(n−1)$ for $0 ≤ i < n$ and the empty string ϵ for $n ≤ i$.
+of propositions taken from AP. Finite traces over $Σ$ are elements of $Sigma^∗$, usually denoted with $u,u',u_1,u_2, dots$. The empty trace is denoted with ϵ. Infinite traces are elements of $Σ^ω$, usually denoted with $w, w', w_1, w_2, dots$ For some infinite trace $w = a_0a_1 ...$, we denote with $w^i$ the suffix $a_i, a_(i+1) dots$ . In case of a finite trace $u=a_0a_1 ...a_(n−1)$, $u^i$ denotes the suffix $a_i a_(i+1) ...a_(n−1)$ for $0 ≤ i < n$ and the empty string ϵ for $n ≤ i$.
 
 == Truth domain
 
@@ -321,13 +338,13 @@ $bb(B)_2$.
         #fgrp[atomic propositions]
         $
            semw(w tack.rr p) & = cases(
-                                top & "if " p in a_0,
-                                bot & "if " p in.not a_0
-                              ) \
+                                 top & "if " p in a_0,
+                                 bot & "if " p in.not a_0
+                               ) \
           semw(w tack.rr ¬p) & = cases(
-                                top & "if " p in.not a_0,
-                                bot & "if " p in a_0
-                              )
+                                 top & "if " p in.not a_0,
+                                 bot & "if " p in a_0
+                               )
         $
       ],
       [
@@ -343,25 +360,25 @@ $bb(B)_2$.
       #align(left, fgrp[until/release])
       $
         semw(w tack.rr φ bold("U") ψ) & = cases(
-                                         gap: #.7em,
-                                         #mcase(
-                                           $top$,
-                                           $"there is a " k >= 0 : semw(w^k tack.rr ψ) = top " and"$,
-                                           $"for all " l " with " 0 <= l < k : semw(w^l tack.rr φ) = top$,
-                                         ),
-                                         #scase($bot$, $"else"$),
-                                       ) \
-                                     \
+                                          gap: #.7em,
+                                          #mcase(
+                                            $top$,
+                                            $"there is a " k >= 0 : semw(w^k tack.rr ψ) = top " and"$,
+                                            $"for all " l " with " 0 <= l < k : semw(w^l tack.rr φ) = top$,
+                                          ),
+                                          #scase($bot$, $"else"$),
+                                        ) \
+                                      \
         semw(w tack.rr φ bold("R") ψ) & = cases(
-                                         gap: #.7em,
-                                         #mcase(
-                                           $top$,
-                                           $"for all " k >= 0 : semw(w^k tack.rr ψ) = top " or"$,
-                                           $"there is a " k >= 0 : semw(w^k tack.rr φ) = top " and"$,
-                                           $"for all " l " with " 0 <= l <= k : semw(w^l tack.rr ψ) = top$,
-                                         ),
-                                         #scase($bot$, $"else"$),
-                                       )
+                                          gap: #.7em,
+                                          #mcase(
+                                            $top$,
+                                            $"for all " k >= 0 : semw(w^k tack.rr ψ) = top " or"$,
+                                            $"there is a " k >= 0 : semw(w^k tack.rr φ) = top " and"$,
+                                            $"for all " l " with " 0 <= l <= k : semw(w^l tack.rr ψ) = top$,
+                                          ),
+                                          #scase($bot$, $"else"$),
+                                        )
       $
     ]
   ],
@@ -376,15 +393,15 @@ $bb(B)_2$.
 
 Inspecting the semantics, we observe that there is no difference of $bold(X)$ and
 $overline(bold(X))$ in LTL over infinite traces. However, $overline(bold(X))$ acts differently
-when finite words are considered.
+when finite traces are considered.
 
-FLTL @rv-ltl is the interpretation of that same syntax (@def:ltl-syntax) over a _finite_ trace,
+FLTL @rv-ltl is the interpretation of that same syntax (@def:ltl-syntax[-]) over a _finite_ trace,
 still in $bb(B)_2$. Its semantics function is constructed like the one for standard LTL but with
 two modifications: if a strong next-state operator in some subformula $bold(X) φ$ is referring to
 a state beyond the known finite prefix $u$, then this subformula is evaluated to $bot$, regardless
 of $φ$. Likewise, a subformula $overline(bold(X)) φ$ always evaluates to $top$ if it refers to a
 state beyond $u$. This approach is extended to the definition of the until and release operators.
-For example, to satisfy $φ bold("U") ψ$ with a finite word $u$, there must exist a position
+For example, to satisfy $φ bold("U") ψ$ with a finite trace $u$, there must exist a position
 satisfying $ψ$ within $u$.
 
 #figure(
@@ -394,38 +411,38 @@ satisfying $ψ$ within $u$.
       #align(left, fgrp[(weak) next])
       $
                   semf(u tack.rr bold(X) φ) & = cases(
-                                               semf(u^1 tack.rr φ) & "if " u^1 != ϵ,
-                                               bot & "otherwise"
-                                             ) \
-                                           \
+                                                semf(u^1 tack.rr φ) & "if " u^1 != ϵ,
+                                                bot & "otherwise"
+                                              ) \
+                                            \
         semf(u tack.rr overline(bold(X)) φ) & = cases(
-                                               semf(u^1 tack.rr φ) & "if " u^1 != ϵ,
-                                               top & "otherwise"
-                                             )
+                                                semf(u^1 tack.rr φ) & "if " u^1 != ϵ,
+                                                top & "otherwise"
+                                              )
       $
 
       #align(left, fgrp[until/release])
       $
         semf(u tack.rr φ bold("U") ψ) & = cases(
-                                         gap: #.7em,
-                                         #mcase(
-                                           $top$,
-                                           $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.rr ψ) = top " and"$,
-                                           $"for all " l " with " 0 <= l < k : semf(u^l tack.rr φ) = top$,
-                                         ),
-                                         #scase($bot$, $"else"$),
-                                       ) \
-                                     \
+                                          gap: #.7em,
+                                          #mcase(
+                                            $top$,
+                                            $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.rr ψ) = top " and"$,
+                                            $"for all " l " with " 0 <= l < k : semf(u^l tack.rr φ) = top$,
+                                          ),
+                                          #scase($bot$, $"else"$),
+                                        ) \
+                                      \
         semf(u tack.rr φ bold("R") ψ) & = cases(
-                                         gap: #.7em,
-                                         #mcase(
-                                           $top$,
-                                           $"for all " k ∈ {0, dots n-1} : semf(u^k tack.rr ψ) = top " or"$,
-                                           $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.rr φ) = top " and"$,
-                                           $"for all " l " with " 0 <= l <= k : semf(u^l tack.rr ψ) = top$,
-                                         ),
-                                         #scase($bot$, $"else"$),
-                                       )
+                                          gap: #.7em,
+                                          #mcase(
+                                            $top$,
+                                            $"for all " k ∈ {0, dots n-1} : semf(u^k tack.rr ψ) = top " or"$,
+                                            $"there is a " k ∈ {0, dots n-1} : semf(u^k tack.rr φ) = top " and"$,
+                                            $"for all " l " with " 0 <= l <= k : semf(u^l tack.rr ψ) = top$,
+                                          ),
+                                          #scase($bot$, $"else"$),
+                                        )
       $
     ]
   ],
@@ -595,7 +612,7 @@ maxims.
   where $top$ (resp. $bot$) denotes the definitive verdict _true_ (resp. _false_) and
   $top^p$ (resp. $bot^p$) the presumable verdict _presumably true_ (resp.
   _presumably false_). It is a finite distributive de Morgan lattice
-  $(bb(B)_4, subset.sq)$, hence a truth domain in the sense of @def:truth-dom, ordered
+  $(bb(B)_4, subset.sq)$, hence a truth domain in the sense of @def:truth-dom[-], ordered
   by
   $ bot subset.sq bot^p subset.sq top^p subset.sq top $
   with $inter.sq$ and $union.sq$ the meet and join of that order, and with
@@ -617,10 +634,10 @@ report a verdict that is not yet final.
   grammar:
   $
     φ, ψ ::= b | p | ¬ φ | φ and ψ | φ or ψ | bold(X) φ | overline(bold(X)) φ
-           | φ bold("U") ψ | φ bold("R") ψ | bold(F) φ | bold(G) φ
+    | φ bold("U") ψ | φ bold("R") ψ | bold(F) φ | bold(G) φ
     quad "where " b ∈ bb(B)_4
   $
-  In contrast to LTL (@def:ltl-syntax), the constants range over the whole of
+  In contrast to LTL (@def:ltl-syntax[-]), the constants range over the whole of
   $bb(B)_4$, which is oftenconsidered in the context of multi-valued logics , and $bold(F)$ and $bold(G)$ are taken as primitive operators rather than
   as abbreviations.
 ]
@@ -653,26 +670,26 @@ report a verdict that is not yet final.
         #fgrp[atomic propositions]
         $
            sem(w tack.rr p) & = cases(
-                               top & "if " p in w_1,
-                               bot & "if " p in.not w_1
-                             ) \
+                                top & "if " p in w_1,
+                                bot & "if " p in.not w_1
+                              ) \
           sem(w tack.rr ¬p) & = cases(
-                               top & "if " p in.not w_1,
-                               bot & "if " p in w_1
-                             )
+                                top & "if " p in.not w_1,
+                                bot & "if " p in w_1
+                              )
         $
       ],
       [
         #fgrp[(weak) next]
         $
                     sem(w tack.rr bold(X) φ) & = cases(
-                                                sem(w^2 tack.rr φ) & "if " abs(w) > 1,
-                                                bot^p & "else"
-                                              ) \
+                                                 sem(w^2 tack.rr φ) & "if " abs(w) > 1,
+                                                 bot^p & "else"
+                                               ) \
           sem(w tack.rr overline(bold(X)) φ) & = cases(
-                                                sem(w^2 tack.rr φ) & "if " abs(w) > 1,
-                                                top^p & "else"
-                                              )
+                                                 sem(w^2 tack.rr φ) & "if " abs(w) > 1,
+                                                 top^p & "else"
+                                               )
         $
       ],
     )
@@ -681,18 +698,18 @@ report a verdict that is not yet final.
       #align(left, fgrp[until/release])
       $
         sem(w tack.rr φ bold("U") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
-                                        sem(w^i tack.rr ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
-                                      )
-                                      union.sq (
-                                        bot^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
-                                      ) \
-                                    \
+                                         sem(w^i tack.rr ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
+                                       )
+                                       union.sq (
+                                         bot^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
+                                       ) \
+                                     \
         sem(w tack.rr φ bold("R") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
-                                        sem(w^i tack.rr φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.rr ψ)
-                                      )
-                                      union.sq (
-                                        top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr ψ)
-                                      )
+                                         sem(w^i tack.rr φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.rr ψ)
+                                       )
+                                       union.sq (
+                                         top^p inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr ψ)
+                                       )
       $
 
       #align(left, fgrp[finally/globally])
@@ -722,103 +739,231 @@ which is what impartiality asks for.
 == Monitor as a Mealy machine
 
 A monitor is a procedure that consumes the input letter by letter and outputs the semantics of the trace read so far with respect to the formula the monitor was built for.
-For each temporal formula registered to the `monitor` it is then compiled into a Mealy machine, also called ﬁnite-state machine (FSM).
+For each temporal formula registered to the `monitor` it is then compiled into a Mealy machine, also called #acr("FSM").
 
 #definition("Mealy machine", label: <def:mealy>)[
-A Mealy machine is a tuple  $cal(M) = (S, s_0, Σ, Γ, δ)$:
-- $S$ a ﬁnite set of states,
-- a start state $s_0 ∈ S$,
-- Σ is a finite set called the input alphabet,
-- Γ is the output alphabet and,
-- $delta : Sigma times S -> Gamma times S$ is the transition function.
+  A Mealy machine is a tuple  $cal(M) = (S, s_0, Σ, Γ, δ)$:
+  - $S$ a finite set of states,
+  - a start state $s_0 ∈ S$,
+  - Σ is a finite set called the input alphabet,
+  - Γ is the output alphabet and,
+  - $delta : Sigma times S -> Gamma times S$ is the transition function.
 ]
 
+we are now ready to define the monitor  #acr("FSM") #M4 computing the #fltl4 semantics in @def:fltl4-sem[-].
 
+#definition([#acr("FSM") #M4], label: <def:m4>)[
+  A `monitor` for #fltl4 is defined by the tuple $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$ with the following transition function:
 
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 1.5em,
-  $
-         delta_4 (a, "true") & = (top, "true") \
-        delta_4 (a, "false") & = (bot, "false") \
-              delta_4 (a, p) & = cases(
-                                 (top, "true") & "if " p in a,
-                                 (bot, "false") & "else"
-                               ) \
-          delta_4 (a, not p) & = cases(
-                                 (bot, "false") & "if " p in a,
-                                 (top, "true") & "else"
-                               ) \
-     delta_4 (a, phi or psi) & = (v_phi union.sq v_psi, "smplfy" (phi' or psi')) \
-    delta_4 (a, phi and psi) & = (v_phi inter.sq v_psi, "smplfy" (phi' and psi'))
-  $,
-  $
-              delta_4 (a, X phi) & = (bot^p, phi) \
-    delta_4 (a, overline(X) phi) & = (top^p, phi) \
-          delta_4 (a, phi U psi) & = delta_4 (a, psi or (phi and X (phi U psi))) \
-          delta_4 (a, phi R psi) & = delta_4 (a, psi and (phi or overline(X) (phi R psi))) \
-              delta_4 (a, F phi) & = delta_4 (a, phi or X F phi) \
-              delta_4 (a, G phi) & = delta_4 (a, phi and overline(X) G phi)
-  $,
-)
+  #grid(
+    columns: (1fr, 1fr),
+    column-gutter: 1.5em,
+    $
+           delta_4 (a, "true") & = (top, "true") \
+          delta_4 (a, "false") & = (bot, "false") \
+                delta_4 (a, p) & = cases(
+                                   (top, "true") & "if " p in a,
+                                   (bot, "false") & "else"
+                                 ) \
+            delta_4 (a, not p) & = cases(
+                                   (bot, "false") & "if " p in a,
+                                   (top, "true") & "else"
+                                 ) \
+       delta_4 (a, phi or psi) & = (v_phi union.sq v_psi, "nrm" (phi' or psi')) \
+      delta_4 (a, phi and psi) & = (v_phi inter.sq v_psi, "nrm" (phi' and psi'))
+    $,
+    $
+                delta_4 (a, X phi) & = (bot^p, phi) \
+      delta_4 (a, overline(X) phi) & = (top^p, phi) \
+            delta_4 (a, phi U psi) & = delta_4 (a, psi or (phi and X (phi U psi))) \
+            delta_4 (a, phi R psi) & = delta_4 (a, psi and (phi or overline(X) (phi R psi))) \
+                delta_4 (a, F phi) & = delta_4 (a, phi or X F phi) \
+                delta_4 (a, G phi) & = delta_4 (a, phi and overline(X) G phi)
+    $,
+  )
+  where _nrm_ is a normalisation function of a formula $phi$ that eliminate any redundancy present in the formula.
+]
+
+Following the characterization of #fltl4, we can etablish a correspondance between #fltl4 semantics and #acr("FSM") $cal(M)$.
 
 #theorem()[
   Let $phi$ be an #fltl4 formula. Then there is an effective procedure constructing an an FSM $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$ such that for all $u ∈ Σ^*$ the following holds:
   $
-     delta_4(s,u) = [ u tack.rr phi ]_4
+    delta_4(s,u) = [ u tack.rr phi ]_4
   $
 ]
 
+= Enhanced #M4
+
+// In this section we will show how we can improve the #M4 to tackle problems such as mechanising the Anticipation maxime.
+
+First, we present the coalgebraic aspect of Mealy machine @mealy-coalg @bonchi2026effectfulmealymachines. Let $A$ be a finite set and let $B$ be a (possibly infinite) meet-semilattice. A Mealy machine (S, $f$) with inputs in A and outputs in B consists of a set of states $S$ together with a function:
+$
+  f:S -> (B times S)^A
+$
+Such a map $f$ is equivalent to the _uncurried_ map between cartesian product $("out", "next"): A times S -> B times S$.
+In coalgebraic terms, a Mealy machine $cal(M)(S, f)$ is  a coalgebra of the functor $frak(M): "Set" -> "Set"$ defined, for any set X, as $frak(M)(X) = (B times X)^A$.
+
+#definition(label: <def:mealy-coalg>)[
+  A $frak(M)$-_coalgebra_ is a pair $(C, gamma)$, where $C$ is a set (of states) and $gamma: X -> frak(M)(X)$ is a (transition) function.
+]
+
+#definition("Mealy homomorphism", label: <def:mealy-hom>)[
+  A homomorphism from a Mealy machine $(S, f)$ to a Mealy machine $(T, g)$ is a function $h: S -> T$ preserving initial outputs and next states:
+  $
+    g compose h = frak(M)(h) compose f, quad "where " frak(M)(h) = ("id"_B times h)^A
+  $
+]
+
+We adopt the notation $s xarrow(sym: -->, a|b) s'$ to denotes the (transition) function result $f(s)(a) = ⟨b, s'⟩$.
+
+
+== #M4 compositions and pre-post treatments with Profunctor
+
+In @def:mealy[-], the set of input and output language are fixed and without side-effect.
+A potential property would be to make them parametric or dynamically computed.
+Both intentions are captured by reading a Mealy machine as an element of a _profunctor_
+@benabou2000distributors, contravariant in the input alphabet (the pre-treatment) and covariant in
+the output alphabet (the post-treatment).
+
+#definition([$cal(M)(X)$ profunctor], label: <def:mealy-prof>)[
+  A _profunctor_ $phi : cal(C) arrow.r.not cal(D)$ is a functor
+  $phi : cal(D)^"op" times cal(C) -> "Set"$ @benabou2000distributors. An element of $phi(d, c)$ is
+  a _heteromorphism_ $d -> c$ (not a morphism of $cal(C)$ nor of $cal(D)$).
+  For $f : d -> d' in cal(D)$, $g : c -> c' in cal(C)$ and $x in phi(d', c)$, the two actions
+  are written as juxtaposition, $x f in phi(d, c)$ and $g x in phi(d', c')$.
+  Writing $frak(M)_(A,B)(X) = (B times X)^A$, the Mealy profunctor
+  $
+    Mly : "Set"^"op" times "Set" -> "Set", quad
+    Mly(A, B) := nu X. #h(.2em) (B times X)^A
+  $
+  sends $(A, B)$ to the Mealy behaviours from the input alphabet $A$ to the output alphabet $B$.
+  Being a final coalgebra, $Mly(A, B) tilde.equiv (B times Mly(A, B))^A$, so a heteromorphism can
+  be applied; write $m(a) = ⟨b, m'⟩$ for one unfolding. Its two actions, for $f : A' -> A$ and
+  $g : B -> B'$, are then given corecursively by
+  $
+    (m f)(a') & = ⟨b, m' f⟩, quad    & "where" ⟨b, m'⟩ = m(f(a')) \
+     (g m)(a) & = ⟨g(b), g m'⟩, quad &     "where" ⟨b, m'⟩ = m(a)
+  $
+  so that $m f in Mly(A', B)$ and $g m in Mly(A, B')$.
+]
+
+=== Pre- and post-treatment
+
+The two actions of @def:mealy-prof[-] _are_ the pre- and the post-treatment of a machine. Both
+keep $S$ and $s_0$ and only rewire the transition, which is why neither can enlarge #M4.
+
+#definition([Actions on #M4], label: <def:actions>)[
+  On a machine presentation, the right action $m f in Mly(A', B)$ (pre-treatment) and the left
+  action $g m in Mly(A, B')$ (post-treatment) keep $S$ and $s_0$ and rewire the transition:
+  #align(center, grid(
+    columns: (auto, auto),
+    column-gutter: 2.4em,
+    align: horizon,
+    prooftree(rule(
+      label: [pre],
+      $s tr(f(a'), b) s'$,
+      $s tr(a', b) s'$,
+    )),
+    prooftree(rule(
+      label: [post],
+      $s tr(a, b) s'$,
+      $s tr(a, g(b)) s'$,
+    )),
+  ))
+]
+
+#definition([Mealy composition], label: <def:mly-comp>)[
+  Profunctors compose by tracing out the middle object with a _coend_ @coend. We write that
+  composition $seq$, in diagrammatic order, so that $phi seq psi$ is "$phi$ first, then $psi$".
+  The two composite $Mly$ profunctors $phi: A arrow.r.not B in Mly(A, B)$ and $psi: B arrow.r.not C in Mly(B, C)$ is given by:
+  $
+    (Mly seq Mly)(A, C) = integral^B Mly(A, B) times Mly(B, C).
+  $
+  A representative is a pair $(m, n)$ with $m in Mly(A, B)$ and $n in Mly(B, C)$ for some $B$, and
+  the coend identifies $(g m, n)$ with $(m, n g)$ for every $g : B -> B'$, $m in Mly(A, B)$ and
+  $n in Mly(B', C)$. The same symbol carries the induced operation on heteromorphisms,
+  $m seq n in Mly(A, C)$: composing the two profunctors and composing two machines are one
+  operation read at two levels.
+]
+
+#figure(
+  placement: top,
+  stack(
+    dir: ttb,
+    spacing: 2.4em,
+
+    // ── (a) the two actions are pure boxes on either side of m ──────────
+    diagram(
+      spacing: (2.9em, 1.4em),
+      node-outset: 1pt,
+      node((0, 0), elbl($A'$, caxis), name: <pa>),
+      mbox((1, 0), text(size: .92em, $"arr"(f)$), name: <pf>),
+      sbox((2, 0), text(size: .92em, $m$), cteal, name: <pm>),
+      mbox((3, 0), text(size: .92em, $"arr"(g)$), name: <pg>),
+      node((4, 0), elbl($B'$, caxis), name: <pb>),
+      edge(<pa>, <pf>, "->", stroke: cgray + .6pt),
+      edge(<pf>, <pm>, elbl($A$, caxis), "->", stroke: cgray + .6pt),
+      edge(<pm>, <pg>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
+      edge(<pg>, <pb>, "->", stroke: cgray + .6pt),
+      compbox((<pf>, <pm>, <pg>)),
+      node((2, 1.25), dtext(size: .76em)[$g m f$ — the state space $S$ of $m$ is untouched]),
+    ),
+
+    // ── (b) composition hides the middle alphabet and the state ─────────
+    diagram(
+      spacing: (3.4em, 1.4em),
+      node-outset: 1pt,
+      node((0, 0), elbl($A$, caxis), name: <sa>),
+      sbox((1, 0), text(size: .92em, $m$), cteal, name: <sm>),
+      sbox((2, 0), text(size: .92em, $n$), camber, name: <sn>),
+      node((3, 0), elbl($C$, caxis), name: <sc>),
+      edge(<sa>, <sm>, "->", stroke: cgray + .6pt),
+      edge(<sm>, <sn>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
+      edge(<sn>, <sc>, "->", stroke: cgray + .6pt),
+      compbox((<sm>, <sn>)),
+      node((1.5, 1.25), dtext(size: .76em)[$m seq n$ — $B$ and $S times T$ are both inside the box]),
+    ),
+
+    // ── (c) the coend identification: g slides across the junction ──────
+    diagram(
+      spacing: (3.3em, 1.4em),
+      node-outset: 1pt,
+      // left wiring: (g m, n)
+      sbox((0, 0), text(size: .92em, $m$), cteal, name: <lm>),
+      mbox((1, 0), text(size: .92em, $g$), name: <lg>),
+      sbox((2, 0), text(size: .92em, $n$), camber, name: <ln>),
+      edge(<lm>, <lg>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
+      edge(<lg>, <ln>, elbl($B'$, caxis), "->", stroke: cgray + .6pt),
+      compbox((<lm>, <lg>), inset: 9pt),
+      node((.5, 1.35), dtext(fill: ctealD, size: .76em)[$(g m, n)$]),
+
+      node((3, 0), text(size: 1.1em, fill: cgray, $tilde$)),
+
+      // right wiring: (m, n g)
+      sbox((4, 0), text(size: .92em, $m$), cteal, name: <rm>),
+      mbox((5, 0), text(size: .92em, $g$), name: <rg>),
+      sbox((6, 0), text(size: .92em, $n$), camber, name: <rn>),
+      edge(<rm>, <rg>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
+      edge(<rg>, <rn>, elbl($B'$, caxis), "->", stroke: cgray + .6pt),
+      compbox((<rg>, <rn>), inset: 9pt),
+      node((5.5, 1.35), dtext(fill: camberD, size: .76em)[$(m, n g)$]),
+    ),
+  ),
+  caption: [
+    The two actions and the composition of @def:mly-comp[-], read as wiring.
+  ],
+) <fig-prof-wiring>
+
+
+
+== Anticipation with `futuromohpsim` <sec-anticipation>
+
+to mechanise the Anticipation principle with a `futuromohpsim` @yang2022fantasticmorphismsthemguide required by our Maximes.
+
+== Final picture
+
 = Development overview <sec-dev>
-
-The `monitor` reads a stream of events output by an application and verifies after each new event whether a set of #fltl4 formulae hold.
-
-
-The `monitor` is a set of  well formed #fltl4 formulae and then compiled into a Mealy machine.
-Each event emitted by the software is an input shared to all the compiled Mealy machine declared.
-
-The `monitor` is extended to keep a history of the previous evaluation at each time step, enabling evaluation of the next state by looking at the history of previous computations.
-
-== The input event stream
-
-A finite word $w$ is a finite sequence over the alphabet $Σ = 2^("AP")$.
-
-The monitor will read a letter $x ∈ Σ$ as input, apply it to the word $w$, and evaluate the formulas over it. However, for efficiency, the monitor will save the last state and evaluate the newer input over it.
-
-
-The rewrite rules implementing `smplfy`, together with proofs of termination and
-confluence (modulo the associativity and commutativity of $and$ and $or$), are
-given in the section _Canonical simplification `smplfy` as a term rewriting
-system_ below.
-
-== Mealy machine
-
-A possible implementation in Haskell will be:
-```hs
-evlFLTL4 :: Char -> FLTL -> (Truth, FLTL)
-evlFLTL4 a TTrue = (Top, TTrue)
-evlFLTL4 a FFalse = (Bot, FFalse)
-evlFLTL4 a (Prop p)
-  | a == p = (Top, TTrue)
-  | a /= p = (Bot, FFalse)
-evlFLTL4 a (Not (Prop p))
-  | a == p = (Bot, FFalse)
-  | a /= p = (Top, TTrue)
-evlFLTL4 a (l :\/ r) = (vl ⊔ vr, l' :\/ r')
-  where
-    (vl, l') = evlFLTL4 a l
-    (vr, r') = evlFLTL4 a r
-evlFLTL4 a (l :/\ r) = (vl ⊓ vr,  l' :/\ r')
-  where
-    (vl, l') = evlFLTL4 a l
-    (vr, r') = evlFLTL4 a r
-evlFLTL4 a (X p) = (PBot, p)
-evlFLTL4 a (Xweak p) = (PTop, p)
-evlFLTL4 a (U p q) = (PTop, q :\/ (p :/\ X (U p q)))
-evlFLTL4 a (R p q) = (PTop, q :/\ (p :\/ Xweak (R p q)))
-evlFLTL4 a (F p) = evlFLTL4 a (p :\/ X (F p))
-evlFLTL4 a (G p) = evlFLTL4 a (p :/\ Xweak (G p))
-```
 
 // = Canonical simplification `smplfy` as a term rewriting system <sec-smplfy>
 
@@ -893,155 +1038,5 @@ evlFLTL4 a (G p) = evlFLTL4 a (p :/\ Xweak (G p))
 // ]
 
 // == Mealy machines as a profunctor
-
-// Input and output of the Mealy machine can be preprocessed and postprocessed
-// respectively by viewing the machine as a profunctor; properties that depend on
-// one another are then combined by profunctor composition.
-
-// === The Mealy bifunctor
-
-// Write $cal(M)(a, b)$ for the set of Mealy machines with input alphabet $a$ and
-// output alphabet $b$. It is the carrier of the terminal coalgebra of the functor
-// $X |-> (a -> b × X)$, equivalently the final solution of
-
-// $
-//   cal(M)(a, b) ≅ a -> (b × cal(M)(a, b)) .
-// $
-
-// A monitor for a formula is the element of $cal(M)(Σ, bb(B)_4 × "LTL")$ obtained
-// by unfolding the transition $delta_4 : Σ × "LTL" -> bb(B)_4 × "LTL"$ from the
-// formula taken as initial state: reading a letter $a ∈ Σ$ returns a verdict in
-// $bb(B)_4$ together with the continuation machine that carries the simplified
-// residual formula.
-
-// === Profunctor structure
-
-// $cal(M)$ is a profunctor, i.e. a functor
-
-// $
-//   cal(M) : bold("Set")^("op") × bold("Set") -> bold("Set"),
-// $
-
-// contravariant in the input and covariant in the output. Its action on morphisms
-// $f : a' -> a$ and $g : b -> b'$ is the map
-
-// $
-//   cal(M)(f, g) : cal(M)(a, b) -> cal(M)(a', b'),
-// $
-
-// defined coinductively: it precomposes the input with $f$ and postcomposes the
-// output with $g$, recursing on the continuation. Write $partial_m : a -> b$ for
-// the _output map_ of a state $m$ — the verdict it emits now, read off the first
-// projection of the isomorphism above. On this observable component the action is
-// plain pre- and post-composition:
-
-// #align(center, diagram(
-//   spacing: (3.6em, 3em),
-//   mbox((0, 0), $f$),
-//   mbox((1, 0), $m$),
-//   mbox((2, 0), $g$),
-//   edge((-1, 0), (0, 0), $a'$, "->"),
-//   edge((0, 0), (1, 0), $a$, "->"),
-//   edge((1, 0), (2, 0), $b$, "->"),
-//   edge((2, 0), (3, 0), $b'$, "->"),
-//   compbox(((0, 0), (2, 0))),
-//   node((1, -0.8), text(fill: gray, size: .82em)[$m' = cal(M)(f,g)(m)$]),
-// ))
-
-// The core machine $m$ is bracketed by the pre-adapter $f$ ($=$ `lmap`) and the
-// post-adapter $g$ ($=$ `rmap`); the dashed box is the re-typed machine
-// $m' = cal(M)(f, g)(m)$, whose output map is $partial_(m') = g ∘ partial_m ∘ f$.
-// On a full input $x$ this reads $cal(M)(f, g)(m)(x) = (g(partial_m (f x)),
-//   cal(M)(f, g)(m'))$. This is `dimap`. Functoriality gives the profunctor laws
-
-// $
-//   cal(M)("id", "id") = "id", quad
-//   cal(M)(f ∘ f', g' ∘ g) = cal(M)(f', g') ∘ cal(M)(f, g),
-// $
-
-// so re-typing the boundary never alters the state nor the transition $delta_4$.
-// The two one-sided actions are the preprocessing and postprocessing maps:
-
-// $
-//   "lmap" f = cal(M)(f, "id") quad (f : e -> Σ), quad quad
-//   "rmap" g = cal(M)("id", g) quad (g : bb(B)_4 × "LTL" -> r) .
-// $
-
-// - $"lmap" f$ _preprocesses_ the input by reindexing a richer event type $e$ onto
-//   the letters $a ∈ Σ$ that a formula observes, so one event stream feeds
-//   monitors over different sub-alphabets.
-// - $"rmap" g$ _postprocesses_ the verdict — projecting the truth value, or
-//   applying the Anticipation look-ahead — as a map on outputs that leaves the
-//   dynamics untouched.
-
-// === Composition
-
-// The Mealy machines are themselves the morphisms of a category $bold("Mealy")$:
-// objects are alphabets, $bold("Mealy")(a, b) = cal(M)(a, b)$, the identity is the
-// copy machine $x |-> (x, "id")$, and series composition threads the state of one
-// machine into the next. This composition is exactly the profunctor composition,
-// given by the coend
-
-// $
-//   (cal(M) ∘ cal(M))(a, c) = integral^(b) cal(M)(a, b) × cal(M)(b, c)
-//   quad -> quad cal(M)(a, c),
-// $
-
-// and it is how _dependent_ properties are wired: when $ψ$ is evaluated on the
-// verdict stream of $φ$, the monitor is the composite $m_φ ⨟ m_ψ$, drawn as the
-// block diagram
-
-// #align(center, diagram(
-//   spacing: (4.5em, 3em),
-//   mbox((0, 0), $m_φ$),
-//   mbox((1, 0), $m_ψ$),
-//   edge((-1, 0), (0, 0), $Σ$, "->"),
-//   edge((0, 0), (1, 0), $bb(B)_4$, "->"),
-//   edge((1, 0), (2, 0), $c$, "->"),
-//   compbox(((0, 0), (1, 0))),
-//   node((0.5, -0.9), text(fill: gray, size: .82em)[$m_φ ⨟ m_ψ$]),
-// ))
-
-// where the dashed box is the composite, again a single Mealy machine in
-// $cal(M)(Σ, c)$. Operationally the two machines run in lockstep on one tick: an
-// event $a ∈ Σ$ enters $m_φ$, which emits a verdict $b ∈ bb(B)_4$ and steps to its
-// continuation $m_φ'$; that verdict is fed as the input _letter_ of $m_ψ$, which
-// emits the final output $c$ and steps to $m_ψ'$; the composite emits $c$ and
-// advances to $m_φ' ⨟ m_ψ'$. Its state is therefore the pair
-// $(m_φ, m_ψ)$, and on output maps it is the pipeline
-// $partial_(m_φ ⨟ m_ψ) = partial_(m_ψ) ∘ partial_(m_φ)$.
-
-// The intermediate alphabet is the _output_ of $m_φ$, not $Σ$: a dependent monitor
-// reads the upstream verdict stream. Concretely one takes $m_φ : cal(M)(Σ, bb(B)_4)$
-// — the verdict stream of $φ$, obtained from its full monitor by `rmap` $pi_1$ to
-// drop the residual formula — and a meta-property $m_ψ : cal(M)(bb(B)_4, c)$ over
-// that stream, e.g. _"$φ$'s verdict has stabilised to $⊤ₚ$"_. Because the composite
-// is itself an element of $cal(M)(Σ, c)$, it may be re-typed by `lmap`/`rmap` or
-// composed again: the construction is closed.
-
-// $bold("Mealy")$ is moreover monoidal under the product of alphabets, with the
-// parallel product $cal(M)(a, b) × cal(M)(c, d) -> cal(M)(a × c, b × d)$.
-// Precomposing the parallel of two monitors with the diagonal
-// $Delta : Σ -> Σ × Σ$ (that is, $"lmap" Delta$) broadcasts a single event to both
-// and pairs their verdicts, $lr(chevron.l m_φ, m_ψ chevron.r) : cal(M)(Σ, (bb(B)_4 ×
-//     "LTL")^2)$, with output map
-
-// #align(center, diagram(
-//   spacing: (4em, 2.4em),
-//   node((0, 0), $Delta$),
-//   mbox((1, -1), $m_φ$),
-//   mbox((1, 1), $m_ψ$),
-//   node((2, 0), $(bb(B)_4 × "LTL")^2$),
-//   edge((-1, 0), (0, 0), $Σ$, "->"),
-//   edge((0, 0), (1, -1), $Σ$, "->"),
-//   edge((0, 0), (1, 1), $Σ$, "->"),
-//   edge((1, -1), (2, 0), "->"),
-//   edge((1, 1), (2, 0), "->"),
-//   compbox(((1, -1), (1, 1))),
-//   node((1, -1.8), text(fill: gray, size: .82em)[$lr(chevron.l m_φ\, m_ψ chevron.r)$]),
-// ))
-
-// This shared-input fan-out underlies a `monitor` assembled from many formulae:
-// every event reaches every declared machine, as described in the overview.
 
 #bibliography("refs.bib")
