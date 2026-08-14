@@ -134,6 +134,7 @@
 #let fan(m, n) = $lr(⟨ #m, #n ⟩)$ // fan-out: one input, paired outputs
 #let tr(a, b) = $xarrow(sym: -->, #a|#b)$ // s --a|b--> s′
 #let beh = $mu$ // the behaviour map into the final coalgebra
+#let Fre = $"Free"_(frak(M))$ // the free monad of the Mealy functor: plans
 // ---------- end profunctor notation ----------
 
 // the small bold rubric heading a group of equations inside a semantics figure
@@ -957,11 +958,174 @@ keep $S$ and $s_0$ and only rewire the transition, which is why neither can enla
 
 
 
-== Anticipation with `futuromohpsim` <sec-anticipation>
+== Anticipation as a futumorphism <sec-anticipation>
 
-to mechanise the Anticipation principle with a `futuromohpsim` @yang2022fantasticmorphismsthemguide required by our Maximes.
+We restate the fourth of our maxims, Anticipation: the moment every infinite continuation of
+the observed prefix agrees on one verdict, the finite trace must already be evaluated to that verdict. The monitor of @def:m4[-] does not satisfy such property. Being an $frak(M)$-coalgebra, it is unfolded by an _anamorphism_ @yang2022fantasticmorphismsthemguide, and an anamorphism produces exactly one layer of $Mly(Σ, bb(B)_4)$ per transition of $delta_4$, so the machine only ever commits to the verdict of the step it is currently taking. Anticipation asks for the opposite commitment. The corecursion scheme that grants precisely this is the _futumorphism_ @yang2022fantasticmorphismsthemguide. A futumorphism returns a finite _plan_ — several layers already built — and consults the seed again only at the leaves of that plan. Plans are the elements of the free monad of $frak(M)$.
 
-== Final picture
+#definition([Plans $Fre$], label: <def:free-mealy>)[
+  The _free monad_ of $frak(M)$ sends a set $X$ of seeds to the least fixed point
+  $
+    Fre (X) = mu Y. #h(.2em) X + frak(M)(Y) = mu Y. #h(.2em) X + (B times Y)^A
+  $
+  with the two constructors
+  $
+    eta : X -> Fre (X), quad "op" : frak(M)(Fre (X)) -> Fre (X).
+  $
+  We call an element of $Fre (X)$ a _plan_. The plan $eta(x)$ is "resume from the seed $x$";
+  the plan $"op"(t)$ is "make the transitions prescribed by the layer
+  $t in (B times Fre (X))^A$, then carry on with the plans it leaves behind". Since $Fre (X)$
+  is a _least_ fixed point, every branch of a plan is finite and ends in a seed: a plan may
+  look arbitrarily far ahead, but never forever.
+]
+
+#definition([$frak(M)$-futumorphism], label: <def:futu>)[
+  An _anticipating coalgebra_ on a set $S$ is a map
+  $
+    gamma : S -> frak(M)(Fre (S))
+  $
+  that is, a coalgebra allowed to answer with plans rather than with bare seeds. Every plan
+  can itself be resumed, which turns $gamma$ into an ordinary $frak(M)$-coalgebra on plans,
+  $gamma^dagger : Fre (S) -> frak(M)(Fre (S))$, defined by structural recursion:
+  $
+    gamma^dagger (eta(s)) = gamma(s), quad gamma^dagger ("op"(t)) = t.
+  $
+  A seed is expanded by consulting $gamma$; a layer the plan already prescribes is handed back
+  as it stands. Because $Mly(A, B)$ is the final $frak(M)$-coalgebra (@def:mealy-prof[-]),
+  $gamma^dagger$ has a unique homomorphism $"ana"(gamma^dagger)$ into it, and the
+  _futumorphism_ of $gamma$ is its restriction to seeds:
+  $
+    "futu"(gamma) := "ana"(gamma^dagger) compose eta #h(.6em) : #h(.6em) S -> Mly(A, B).
+  $
+]
+
+The iso $Mly(A, B) tilde.equiv frak(M)(Mly(A, B))$ makes $Mly(A, B)$ an $frak(M)$-algebra,
+hence a $Fre$-algebra $"run" : Fre (Mly(A, B)) -> Mly(A, B)$ that simply plays a plan out. In
+terms of it, $"futu"(gamma)$ is the unique $h : S -> Mly(A, B)$ making
+$
+  "out" compose h = frak(M)("run" compose Fre (h)) compose gamma
+$
+commute, which is the universal property we appeal to below. Restricting $gamma$ to plans of
+the form $eta(s)$ collapses this to $"out" compose h = frak(M)(h) compose gamma$, the
+homomorphism condition of @def:mealy-hom[-]: the futumorphism is a conservative extension of
+the unfolding already used for #M4.
+
+To instantiate @def:futu[-] on #M4 we still need to know _when_ a verdict may be committed
+to. The residual formula carries that information.
+
+#definition([Decided residual], label: <def:decided>)[
+  A formula $phi$ is _decided_ on $b in bb(B)_2$, written $"dec"(phi) = b$, when every
+  infinite word agrees on it:
+  $
+    "dec"(phi) = b quad "iff" quad forall w in Σ^ω. #h(.3em) semw(w tack.rr phi) = b
+  $
+  and $"dec"(phi) = #h(.15em) ?$ (_undecided_) when no such $b$ exists. Deciding $phi$ is an
+  LTL validity check, and the residuals reachable from $phi$ under $delta_4$ form a finite
+  set, so $"dec"$ is a finite table computed once, when the monitor is built.
+]
+
+#lemma([$delta_4$ computes the residual], label: <lem:residual>)[
+  Write $delta_4^*(u, phi)$ for the formula component of $delta_4$ iterated along
+  $u in Σ^*$. Then for all $u in Σ^*$ and all $w in Σ^ω$,
+  $
+    semw(u w tack.rr phi) = semw(w tack.rr delta_4^*(u, phi)).
+  $
+  The proof is by induction on $phi$, inspecting @def:m4[-]: each clause discards the letter
+  it consumed and keeps exactly the obligation it left behind.
+]
+
+Consequently "every infinite continuation of $u$ agrees on $b$" is literally the statement
+$"dec"(delta_4^*(u, phi)) = b$ — a test on the current state, which is what makes
+Anticipation mechanisable at all.
+
+#definition([Anticipating monitor $cal(M)_4^(phi, k)$], label: <def:m4-futu>)[
+  Fix a _horizon_ $k >= 1$ and take #fltl4 formulae as seeds, noting that the constants
+  $b in bb(B)_4$ are themselves formulae (@def:fltl4-syntax[-]) with
+  $delta_4(a, b) = (b, b)$. One anticipating step, parametric in what it does with an
+  undecided residual, is
+  $
+    "step"(p)(phi)(a) = cases(
+      ⟨b, eta(b)⟩ & "if " "dec"(phi') = b in {top, bot},
+      ⟨v, p(phi')⟩ & "otherwise",
+    ) quad "where " (v, phi') = delta_4(a, phi)
+  $
+  and the $j$-layer plan is built by iterating it:
+  $
+    "look"^0(phi) = eta(phi), quad "look"^(j+1)(phi) = "op"("step"("look"^j)(phi)).
+  $
+  The anticipating coalgebra and the monitor it denotes are then
+  $
+    gamma_4^k : #fltl4 -> frak(M)(Fre (#fltl4)), quad gamma_4^k = "step"("look"^(k-1)),
+    quad cal(M)_4^(phi, k) := "futu"(gamma_4^k)(phi) #h(.3em) in #h(.3em) Mly(Σ, bb(B)_4).
+  $
+]
+
+Two things happen in $"step"$. First, as soon as the residual is decided the machine emits the
+definitive verdict $b$ _and_ collapses to the constant seed $b$, so that verdict is emitted at
+the earliest step at which it is warranted and is never retracted afterwards. Second, when the
+residual is still open the machine does not merely record it: it unfolds $delta_4$ a further
+$k - 1$ letters, precomputing the whole depth-$k$ decision tree over the continuations —
+outputs, successors, and their decision tests — in a single move. The horizon is a purely
+operational knob: $k = 1$ gives $"look"^0 = eta$, so $gamma_4^1$ is an ordinary coalgebra and
+$"futu"(gamma_4^1) = "ana"(gamma_4^1)$, while a larger $k$ amortises the run of the machine
+over blocks of $k$ letters. The verdicts do not depend on it.
+
+#proposition([$cal(M)_4^(phi, k)$ satisfies Anticipation], label: <prop:anticipation>)[
+  Let $phi$ be an #fltl4 formula, let $k >= 1$, let $u = u_1 dots u_n in Σ^+$, and let
+  $b_n in bb(B)_4$ be the $n$-th output of $cal(M)_4^(phi, k)$ on $u$. Then
+  + _(soundness)_ if $b_n in {top, bot}$ then $semw(u w tack.rr phi) = b_n$ for every
+    $w in Σ^ω$;
+  + _(anticipation)_ conversely, if $semw(u w tack.rr phi) = b$ for every $w in Σ^ω$ and some
+    $b in {top, bot}$, then $b_n = b$;
+  + _(agreement)_ if no prefix of $u$ has a decided residual, then $b_n = sem(u tack.rr phi)$,
+    the verdict of @def:fltl4-sem[-].
+
+]
+
+== Final picture of Enhanced #M4
+
+The three enhancements are three readings of one object, and they stack without interfering.
+Fix a formula $phi$, a horizon $k >= 1$, a pre-treatment $f : A -> Σ$ and a post-treatment
+$g : bb(B)_4 -> B$. The enhanced monitor is the single heteromorphism
+$
+  cal(M)_4^(phi, k) [f, g] := g #h(.15em) "futu"(gamma_4^k)(phi) #h(.15em) f
+  #h(.5em) in #h(.5em) Mly(A, B)
+$
+unfolded from the single anticipating coalgebra
+$
+  gamma_4^k : #fltl4 -> frak(M)_(Σ, bb(B)_4)(Fre (#fltl4)),
+  quad "where" quad frak(M)_(A, B)(X) = (B times X)^A .
+$
+
+Each layer contributes one thing and nothing else:
+
+#grid(
+  columns: (auto, 1fr),
+  column-gutter: 1.2em,
+  row-gutter: .8em,
+  [_coalgebra_ (@def:mealy-coalg[-])],
+  [
+    hides the state: a machine is known only through the unique map into the final
+    coalgebra $Mly(Σ, bb(B)_4) = nu X. #h(.2em) (bb(B)_4 times X)^Σ$, so two monitors with
+    different state spaces but equal verdicts are equal.
+  ],
+
+  [_profunctor_ (@def:mealy-prof[-])],
+  [
+    makes the two alphabets parameters: $f$ and $g$ rewire the transition without touching
+    $S$ or $s_0$ (@def:actions[-]), and $seq$ composes monitors by tracing out the middle
+    alphabet (@def:mly-comp[-]).
+  ],
+
+  [_futumorphism_ (@def:futu[-])],
+  [
+    lets the coalgebra answer with plans instead of seeds, which is what allows a verdict to
+    be committed before the step that would otherwise reveal it (@prop:anticipation[-]).
+  ],
+)
+
+Setting $k = 1$ and $f = "id"_Σ$, $g = "id"_(bb(B)_4)$ collapses every layer at once and
+returns the #M4 of @def:m4[-]: the enhancements are extensions, not replacements.
 
 = Development overview <sec-dev>
 
