@@ -807,7 +807,42 @@ Such a map $f$ is equivalent to the _uncurried_ map between cartesian product $(
 In coalgebraic terms, a Mealy machine $cal(M)(S, f)$ is  a coalgebra of the functor $frak(M): "Set" -> "Set"$ defined, for any set X, as $frak(M)(X) = (B times X)^A$.
 
 #definition(label: <def:mealy-coalg>)[
-  A $frak(M)$-_coalgebra_ is a pair $(C, gamma)$, where $C$ is a set (of states) and $gamma: X -> frak(M)(X)$ is a (transition) function.
+  A $frak(M)$-_coalgebra_ is a pair $(C, gamma)$, where $C$ is a set (of states) and $gamma: C -> frak(M)(C)$ is a (transition) function.
+]
+
+We adopt the notation $s tr(a, b) s'$ to denotes the (transition) function result $f(s)(a) = ⟨b, s'⟩$.
+
+#example([$frak(M)$-coalgebra of $bold(F) q$ and $bold(G) p$], label: <ex:coalg>)[
+  Let $bold("AP") = {p, q}$ and $Σ = 2^bold("AP")$, and take $A = Σ$, $B = bb(B)_4$. The
+  #M4 of @def:m4[-] is the $frak(M)$-coalgebra $(C, gamma)$ whose carrier $C$ is the set of
+  residual formulae reachable from the property and whose transition is
+  $gamma(phi)(a) = delta_4(a, phi)$. The alphabet $Σ$ is not part of the pair: it sits in
+  the functor, as the exponent of $frak(M)(C) = (bb(B)_4 times C)^Σ$. Unfolding @def:m4[-] on
+  $bold(F) q = q or bold(X) bold(F) q$ and $bold(G) p = p and overline(bold(X)) bold(G) p$
+  gives, for every $a in Σ$,
+  $
+    gamma(bold(F) q)(a) & = cases(
+                            ⟨top, "true"⟩ & "if " q in a,
+                            ⟨bot^p, bold(F) q⟩ ,
+                          ) \
+    gamma(bold(G) p)(a) & = cases(
+                            ⟨top^p, bold(G) p⟩  "if " p in a ,
+                            ⟨bot, "false"⟩ ,
+                          )
+  $
+  so each property needs only two states, $C = {bold(F) q, "true"}$ and
+  $C = {bold(G) p, "false"}$ respectively. On the trace $u = {p}{p}{q}$ the two runs are
+  $
+    bold(F) q & tr({p}, bot^p) bold(F) q tr({p}, bot^p) bold(F) q tr({q}, top) "true" \
+    bold(G) p & tr({p}, top^p) bold(G) p tr({p}, top^p) bold(G) p tr({q}, bot) "false"
+  $
+  emitting $bot^p bot^p top$ and $top^p top^p bot$,
+  that is $sem(u tack.rr bold(F) q) = top$ and $sem(u tack.rr bold(G) p) = bot$ @rv-ltl.
+  Both verdicts are definitive, and this is what settles the infinite words:
+  $semw({p}({p}{q})^ω tack.rr bold(F) q) = top$ and
+  $semw({p}({p}{q})^ω tack.rr bold(G) p) = bot$. Note that the machine reaches the
+  definitive verdict only on the third letter, one layer at a time and this is the limitation
+  the anticipating monitor removes.
 ]
 
 #definition("Mealy homomorphism", label: <def:mealy-hom>)[
@@ -816,8 +851,6 @@ In coalgebraic terms, a Mealy machine $cal(M)(S, f)$ is  a coalgebra of the func
     g compose h = frak(M)(h) compose f, quad "where " frak(M)(h) = ("id"_B times h)^A
   $
 ]
-
-We adopt the notation $s xarrow(sym: -->, a|b) s'$ to denotes the (transition) function result $f(s)(a) = ⟨b, s'⟩$.
 
 
 == #M4 compositions and pre-post treatments with Profunctor
@@ -848,6 +881,30 @@ the output alphabet (the post-treatment).
      (g m)(a) & = ⟨g(b), g m'⟩, quad &     "where" ⟨b, m'⟩ = m(a)
   $
   so that $m f in Mly(A', B)$ and $g m in Mly(A, B')$.
+]
+
+#example([Re-alphabetising the $bold(F) q$ monitor], label: <ex:prof>)[
+  Let $m in Mly(Σ, bb(B)_4)$ be the behaviour of the $bold(F) q$ machine unfolded above.
+  Take a set $bb(E)$ of program events, each carrying more than the two atoms, and
+
+  - a _pre-treatment_ $f : bb(E) -> Σ$ keeping of an event only which of $p, q$ hold;
+  - a _post-treatment_ $g : bb(B)_4 -> bb(B)_2$ collapsing the presumable verdicts,
+    $g(top) = g(top^p) = top$ and $g(bot) = g(bot^p) = bot$.
+
+  The two actions of @def:mealy-prof[-] give $m f in Mly(bb(E), bb(B)_4)$,
+  $g m in Mly(Σ, bb(B)_2)$ and $g m f in Mly(bb(E), bb(B)_2)$, the last one unfolding as
+  $
+    (g compose m compose f)(e) = ⟨g(b), g compose m' compose f⟩, quad "where " ⟨b, m'⟩ = m(f(e)) .
+  $
+  On events $e_1 e_2 e_3$ with $f(e_1) = f(e_2) = {p}$ and $f(e_3) = {q}$, the run of
+  $g m f$ is
+  $
+    bold(F) q tr(e_1, bot) bold(F) q tr(e_2, bot) bold(F) q tr(e_3, top) "true"
+  $
+  the same states as above, read through $g$: the stream $bot^p bot^p top$ has become
+  $bot bot top$. By @def:actions[-] neither action
+  touches $S$ or $s_0$: the four-valued monitor over $Σ$ and its two-valued reading over
+  $bb(E)$ are one machine, wired differently.
 ]
 
 === Pre- and post-treatment
@@ -1039,7 +1096,7 @@ The _residual_ formula (i.e. the n-th approximation) carries that information.
 #figure(
   placement: bottom,
   diagram(
-    spacing: (8.4em, 3.8em),
+    spacing: (8.4em, 4.8em),
     node-outset: 3pt,
     node((0, 0), $S$, name: <ua>),
     node((1, 0), $frak(M)(Fre (S))$, name: <ub>),
@@ -1049,13 +1106,13 @@ The _residual_ formula (i.e. the n-th approximation) carries that information.
     edge(
       <ua>,
       <uc>,
-      elbl($h = "futu"(gamma)$, ctealD),
+      elbl($"futu"(gamma)$, ctealD),
       "-->",
       label-side: right,
       stroke: ctealD + .7pt,
     ),
     edge(<ub>, <ud>, elbl($frak(M)(flat compose Fre (h))$, caxis), "->", stroke: cgray + .6pt),
-    edge(<uc>, <ud>, elbl($"out" #h(.25em) (tilde.equiv)$, caxis), "->", stroke: cgray + .6pt),
+    edge(<uc>, <ud>, elbl($"out" #h(.25em)$, caxis), "->", stroke: cgray + .6pt),
   ),
   caption: [
     How the anticipating behaviour $"futu"(gamma) in Mly(A, B)$ is constructed from $gamma$.
@@ -1066,7 +1123,7 @@ The _residual_ formula (i.e. the n-th approximation) carries that information.
   A formula $phi$ is _decided_ on $b in bb(B)_2 subset bb(B)_4$, written $"dec"(phi) = b$, when every
   infinite word agrees on it:
   $
-    "dec"(phi) = b quad "iff" quad forall w in Σ^ω. #h(.3em) sem(w tack.rr phi) = b
+    "dec"(phi) = b quad "iff" quad forall w in Σ^ω. #h(.3em) semw(w tack.rr phi) = b
   $
   and $"dec"(phi) = #h(.15em) ?$ (_undecided_) when no such $b$ exists. Deciding $phi$ is an
   LTL validity check, and the residuals reachable from $phi$ under $delta_4$ form a finite
@@ -1112,24 +1169,50 @@ Consequently the assertion that every infinite continuation of $u$ agrees on $b$
   verdict $v$ that $delta_4$ would have emitted, outputs the definitive $b$ instead, and
   collapses to the bare constant seed $eta(b)$ ignoring the continuation $kappa$. In the second case the residual is still open, so the step keeps $delta_4$'s own verdict $v$ and
   hands $phi'$ to $kappa$ to be developed further.
-  Therefore, iterating on the step deepens the plan. 
-  We write $"plan"_j : #fltl4 -> Fre (#fltl4)$ for the continuation that unfold $j$ layers:
+  Therefore, iterating on the step deepens the plan.
+  We write $"plan"_j : #fltl4 -> Fre (#fltl4)$ for the continuation that unfolds $j$ layers:
   $
     "plan"_0 = eta, quad "plan"_(j+1) = "op" compose "step"_("plan"_j) .
   $
   Finally, the anticipating coalgebra and the machine it denotes are then:
   $
-    gamma_4^k := "step"_("plan"_(k-1)) #h(.5em) : #h(.5em) #fltl4 -> frak(M)(Fre (#fltl4)),
-    quad cal(M)_4^(phi, k) := "futu"(gamma_4^k)(phi) #h(.3em) in #h(.3em) Mly(Σ, bb(B)_4).
+    gamma_4^k &: #fltl4 -> frak(M)(Fre (#fltl4)) \
+    gamma_4^k &:= "step"_("plan"_(k-1)) \
+    quad cal(M)_4^(phi, k) &:= "futu"(gamma_4^k)(phi) in Mly(Σ, bb(B)_4).
   $
-  The horizon is an operational knob only: the verdicts do not depend on it, as
-  @prop:anticipation[-] holds for every $k >= 1$ without mentioning $k$ in its conclusions.
-  What $k$ buys is how much work is done per move. At $k = 1$ we have $"plan"_0 = eta$, so
-  every branch of the plan ends immediately in a seed, the plan is one layer deep,
-  $gamma_4^1$ is an ordinary coalgebra and $"futu"(gamma_4^1) = "ana"(gamma_4^1)$ -- the
-  free monad buys nothing. A larger $k$ precomputes the whole depth-$k$ decision tree over
-  the next $k$ letters in a single move, amortising the run of the machine over blocks of
-  $k$ letters.
+]
+
+#example([Anticipation], label: <ex:futu>)[
+  Take $phi = bold(G) "true"$. For every $a in Σ$, @def:m4[-] gives
+  $
+    delta_4(a, bold(G) "true") = delta_4(a, "true" and overline(bold(X)) bold(G) "true")
+    = (top inter.sq top^p, #h(.3em) "nrm"("true" and bold(G) "true")) = (top^p, bold(G) "true"),
+  $
+  so #M4 emits $top^p$ on every letter and never commits, and dually
+  $delta_4(a, bold(F) "false") = (bot^p, bold(F) "false")$ emits $bot^p$ forever @rv-ltl.
+  Yet every infinite word satisfies $bold(G) "true"$ and none satisfies $bold(F) "false"$,
+  so $"dec"(bold(G) "true") = top$ and $"dec"(bold(F) "false") = bot$ and the commit branch
+  fires on the _first_ letter:
+  $
+    "step"_kappa (bold(G) "true")(a) = ⟨top, eta(top)⟩, quad
+    "step"_kappa (bold(F) "false")(a) = ⟨bot, eta(bot)⟩ .
+  $
+  The constant seed is absorbing, so the verdict is repeated forever and never retracted.
+
+  _Lookahead._ The commit branch discards $kappa$, so a plan only does real work on an
+  undecided residual. Take $phi = bold(F) q$ and $k = 2$, so
+  $gamma_4^2 = "step"_("plan"_1)$ with $"plan"_1 = "op" compose "step"_eta$ and
+  $
+    "step"_eta (bold(F) q)(a) = cases(
+      ⟨top, eta(top)⟩ & "if " q in a #h(.5em) ("dec"("true") = top", commit"),
+      ⟨bot^p, eta(bold(F) q)⟩ & "else" #h(1.1em) ("dec"(bold(F) q) = #h(.15em) ?", defer"),
+    )
+  $
+  Reading $a = {p}$ leaves the residual $bold(F) q$ undecided, so $gamma_4^2$ defers and
+  answers $gamma_4^2 (bold(F) q)({p}) = ⟨bot^p, "plan"_1 (bold(F) q)⟩$. The successor is no
+  longer a bare state but a plan already holding the whole next-letter decision tree, its
+  branches ending in seeds: the machine has looked two letters ahead in one move, which is
+  what $Fre$ buys and an anamorphism cannot express.
 ]
 
 #proposition([$cal(M)_4^(phi, k)$ satisfies Anticipation], label: <prop:anticipation>)[
@@ -1139,26 +1222,56 @@ Consequently the assertion that every infinite continuation of $u$ agrees on $b$
     $w in Σ^ω$;
   + _(anticipation)_ conversely, if $semw(u w tack.rr phi) = b$ for every $w in Σ^ω$ and some
     $b in {top, bot}$, then $b_n = b$;
-  + _(agreement)_ if no prefix of $u$ has a decided residual, then $b_n = sem(u tack.rr phi)$,
-    the verdict of @def:fltl4-sem[-].
-
+  + _(agreement)_ if no prefix of $u$ has a decided residual, then $b_n = sem(u tack.rr phi)$.
 ]
 
 == Final picture of Enhanced #M4
 
+#figure(
+  placement: top,
+  table(
+    columns: (auto, 1fr),
+    align: (left + top, left + top),
+    stroke: none,
+    inset: (x: .7em, y: .8em),
+    table.hline(stroke: .8pt),
+    table.header([*Construction*], [*Contribution:*]),
+    table.hline(stroke: .5pt),
 
+    $frak(M)(X) = (B times X)^A$,
+    [
+      The Mealy functor, whose coalgebras are exactly the Mealy machines: a set of states
+      with a map sending each state to one transition layer, namely an output letter and a
+      successor for every input letter (@def:mealy-coalg[-]).
+    ],
 
-The three enhancements are three readings of one object, and they stack without interfering.
+    $Mly(A, B) = nu X. #h(.2em) (B times X)^A$,
+    [
+      The Mealy profunctor, contravariant in the input alphabet and covariant in the output
+      one, so that both alphabets become parameters (@def:mealy-prof[-]).
+    ],
+
+    $Fre (X) = mu Y. #h(.2em) X + frak(M)(Y)$,
+    [
+      The plans over a set of seeds. A plan is a finite stack of transition layers computed
+      in advance, every branch of which ends in a seed to be resumed later
+      (@def:free-mealy[-]).
+    ],
+
+    table.hline(stroke: .8pt),
+  ),
+  caption: [The constructions the enhanced monitor is assembled from.],
+) <tab-constructions>
+
+The three enhancements (@tab-constructions) are three readings of one object, and they stack without interfering.
 Fix a formula $phi$, a horizon $k >= 1$, a pre-treatment $f : A -> Σ$ and a post-treatment
-$g : bb(B)_4 -> B$. The enhanced monitor is the single heteromorphism
+$g : bb(B)_4 -> B$. The enhanced monitor is the profunctor:
 $
-  cal(M)_4^(phi, k) [f, g] := g #h(.15em) "futu"(gamma_4^k)(phi) #h(.15em) f
-  #h(.5em) in #h(.5em) Mly(A, B)
+  cal(M)_4^(phi, k) [f, g] := g compose "futu"(gamma_4^k)(phi) compose f in Mly(A, B)
 $
 unfolded from the single anticipating coalgebra
 $
-  gamma_4^k : #fltl4 -> frak(M)_(Σ, bb(B)_4)(Fre (#fltl4)),
-  quad "where" quad frak(M)_(A, B)(X) = (B times X)^A .
+  gamma_4^k : #fltl4 -> frak(M)_(Σ, bb(B)_4)(Fre (#fltl4))
 $
 
 Each layer contributes one thing and nothing else:
@@ -1188,83 +1301,13 @@ Each layer contributes one thing and nothing else:
   ],
 )
 
-Setting $k = 1$ and $f = "id"_Σ$, $g = "id"_(bb(B)_4)$ collapses every layer at once and
-returns the #M4 of @def:m4[-]: the enhancements are extensions, not replacements.
+#remark()[
+  Setting $k = 1$ and $f = "id"_Σ$, $g = "id"_(bb(B)_4)$ collapses every layer at once and
+  returns the #M4 of @def:m4[-]: the enhancements are extensions, not replacements.
+]
 
 = Development Overview <sec-dev>
 
-// = Canonical simplification `smplfy` as a term rewriting system <sec-smplfy>
-
-// We realise `smplfy` as a term rewriting system (TRS) $cal(R)$ on `FLTL₄`
-// formulae. Reduction drives a formula toward a normal form; we prove that
-// $cal(R)$ is _terminating_ and _confluent modulo the associativity and
-// commutativity of $and$ and $or$_, so every formula has a unique normal form and
-// `smplfy` is a well-defined function.
-
-// Throughout we assume the input is in negation normal form (NNF): $not$ occurs
-// only on atomic propositions. This invariant is established by the `nnf` pre-pass
-// and preserved by $delta_4$, hence a literal $p$ or $not p$ is treated as an
-// atomic constant by $cal(R)$.
-
-// == Rewrite rules
-
-// We split $cal(R) = cal(R)_s union cal(R)_d$ into a _simplification core_
-// $cal(R)_s$ (rules 1–24) and an optional _distribution_ layer $cal(R)_d$
-// (rules 25–26).
-
-// #grid(
-//   columns: (1fr, 1fr),
-//   column-gutter: 1.5em,
-//   $
-//      "true" and phi & -> phi     &  quad (1) \
-//      phi and "true" & -> phi     &  quad (2) \
-//     "false" and phi & -> "false" &  quad (3) \
-//     phi and "false" & -> "false" &  quad (4) \
-//         phi and phi & -> phi     &  quad (5) \
-//       "true" or phi & -> "true"  &  quad (6) \
-//       phi or "true" & -> "true"  &  quad (7) \
-//      "false" or phi & -> phi     &  quad (8) \
-//      phi or "false" & -> phi     &  quad (9) \
-//          phi or phi & -> phi     & quad (10)
-//   $,
-//   $
-//     phi and (phi or psi) & -> phi     & quad (11) \
-//     (phi or psi) and phi & -> phi     & quad (12) \
-//     phi or (phi and psi) & -> phi     & quad (13) \
-//     (phi and psi) or phi & -> phi     & quad (14) \
-//                 F "true" & -> "true"  & quad (15) \
-//                G "false" & -> "false" & quad (16) \
-//             phi U "true" & -> "true"  & quad (17) \
-//            phi R "false" & -> "false" & quad (18) \
-//            "false" U psi & -> psi     & quad (19) \
-//             "true" R psi & -> psi     & quad (20) \
-//             "true" U psi & -> F psi   & quad (21) \
-//            "false" R psi & -> G psi   & quad (22) \
-//                F (F phi) & -> F phi   & quad (23) \
-//                G (G phi) & -> G phi   & quad (24)
-//   $,
-// )
-
-// Rules (11)–(14) are stated up to the commutativity of $and$ and $or$; their
-// four mirror-image variants are included. The distribution layer is:
-
-// $
-//   phi and (psi or chi) & -> (phi and psi) or (phi and chi) & quad (25) \
-//   (phi or psi) and chi & -> (phi and chi) or (psi and chi) & quad (26)
-// $
-
-// #block(inset: (left: 0pt))[
-//   *Remark (soundness in $bb(B)_4$).* Because $(bb(B)_4, ⊑)$ is a De Morgan but
-//   _not_ a Boolean lattice, the complement laws are inadmissible: taking
-//   $phi = ⊤ₚ$ gives $phi or not phi = ⊤ₚ ⊔ ⊥ₚ = ⊤ₚ != ⊤$ and
-//   $phi and not phi = ⊤ₚ ⊓ ⊥ₚ = ⊥ₚ != ⊥$. Likewise, temporal operators whose
-//   constant argument evaluates to a _presumable_ value are left un-folded, since
-//   $⊤ₚ, ⊥ₚ$ are not formulae: $sem(w tack.rr F "false") = ⊥ₚ != ⊥$ and
-//   $sem(w tack.rr G "true") = ⊤ₚ != ⊤$, whereas the absorbing cases (15)–(18) do
-//   collapse to $"true" slash "false"$. Every rule above was validated against the
-//   semantics $sem(-)$ and the step relation $delta_4$.
-// ]
-
-// == Mealy machines as a profunctor
+TODO
 
 #bibliography("refs.bib")
