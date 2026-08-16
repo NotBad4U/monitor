@@ -823,11 +823,11 @@ We adopt the notation $s tr(a, b) s'$ to denotes the (transition) function resul
   $
     gamma(bold(F) q)(a) & = cases(
                             ⟨top, "true"⟩ & "if " q in a,
-                            ⟨bot^p, bold(F) q⟩ ,
+                            ⟨bot^p, bold(F) q⟩,
                           ) \
     gamma(bold(G) p)(a) & = cases(
-                            ⟨top^p, bold(G) p⟩  "if " p in a ,
-                            ⟨bot, "false"⟩ ,
+                            ⟨top^p, bold(G) p⟩ "if " p in a,
+                            ⟨bot, "false"⟩,
                           )
   $
   so each property needs only two states, $C = {bold(F) q, "true"}$ and
@@ -1176,17 +1176,18 @@ Consequently the assertion that every infinite continuation of $u$ agrees on $b$
   $
   Finally, the anticipating coalgebra and the machine it denotes are then:
   $
-    gamma_4^k &: #fltl4 -> frak(M)(Fre (#fltl4)) \
-    gamma_4^k &:= "step"_("plan"_(k-1)) \
-    quad cal(M)_4^(phi, k) &:= "futu"(gamma_4^k)(phi) in Mly(Σ, bb(B)_4).
+                 gamma_4^k & : #fltl4 -> frak(M)(Fre (#fltl4)) \
+                 gamma_4^k & := "step"_("plan"_(k-1)) \
+    quad cal(M)_4^(phi, k) & := "futu"(gamma_4^k)(phi) in Mly(Σ, bb(B)_4).
   $
 ]
 
 #example([Anticipation], label: <ex:futu>)[
   Take $phi = bold(G) "true"$. For every $a in Σ$, @def:m4[-] gives
   $
-    delta_4(a, bold(G) "true") = delta_4(a, "true" and overline(bold(X)) bold(G) "true")
-    = (top inter.sq top^p, #h(.3em) "nrm"("true" and bold(G) "true")) = (top^p, bold(G) "true"),
+    delta_4(a, bold(G) "true") &equiv delta_4(a, "true" and overline(bold(X)) bold(G) "true") \
+    & equiv (top inter.sq top^p, #h(.3em) "nrm"("true" and bold(G) "true")) \
+    &equiv (top^p, bold(G) "true"),
   $
   so #M4 emits $top^p$ on every letter and never commits, and dually
   $delta_4(a, bold(F) "false") = (bot^p, bold(F) "false")$ emits $bot^p$ forever @rv-ltl.
@@ -1263,7 +1264,7 @@ Consequently the assertion that every infinite continuation of $u$ agrees on $b$
   caption: [The constructions the enhanced monitor is assembled from.],
 ) <tab-constructions>
 
-The three enhancements (@tab-constructions) are three readings of one object, and they stack without interfering.
+The three enhancements (@tab-constructions) are the three stacks of the final monitor that we name $cal(M)_4^(phi, k)$.
 Fix a formula $phi$, a horizon $k >= 1$, a pre-treatment $f : A -> Σ$ and a post-treatment
 $g : bb(B)_4 -> B$. The enhanced monitor is the profunctor:
 $
