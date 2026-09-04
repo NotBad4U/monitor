@@ -1,2 +1,0 @@
-packages: *.cabal
-multi-repl: True

@@ -5,6 +5,7 @@
 #import "@preview/theoretic:0.4.0"
 #import "@preview/xarrow:0.4.0": xarrow, xarrowSquiggly, xarrowTwoHead
 #import "@preview/curryst:0.6.0": prooftree, rule, rule-set
+#import "@preview/dashy-todo:0.1.3": todo
 
 #import theoretic.presets.basic: * // this will automatically load predefined styled environments
 #show ref: theoretic.show-ref      // this is necessary for references to theorems to work
@@ -665,7 +666,7 @@ The four maxims below say precisely what we expect from such a semantics.
                                          text(fill: cteal, bot^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
                                        ) \
                                      \
-        sem(w tack.rr φ bold("R") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+        sem(w tack.rr φ bold("R") ψ) & = inter.sq.big_(1 <= i <= abs(w)) (
                                          sem(w^i tack.rr φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.rr ψ)
                                        )
                                        union.sq (
@@ -682,6 +683,9 @@ The four maxims below say precisely what we expect from such a semantics.
   ],
   caption: [Semantics of #fltl4 formulae over a non-empty finite trace $w = w_1 dots w_(abs(w)) ∈ Σ^+$],
 ) <fig-fltl4-sem>
+
+#todo(position: "inline")[Semantics equivalence between F, G and U, R ??]
+
 
 #definition([Semantics of #fltl4], label: <def:fltl4-sem>)[
   The truth value of an #fltl4 formula $φ$, denoted with $sem(w tack.rr φ)$, is given by the function

@@ -1,0 +1,10 @@
+name = "Mealy"
+version = "0.1.0"
+defaultTargets = ["mealy"]
+
+[[lean_lib]]
+name = "Mealy"
+
+[[lean_exe]]
+name = "mealy"
+root = "Main"
