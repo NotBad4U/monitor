@@ -8,3 +8,7 @@ name = "Mealy"
 [[lean_exe]]
 name = "mealy"
 root = "Main"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
