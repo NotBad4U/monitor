@@ -69,14 +69,14 @@ def meet_𝔹₂ : 𝔹₂ → 𝔹₂ → 𝔹₂
   | _, _        => .bot
 
 instance SemilatticeSup_𝔹₂ : SemilatticeSup 𝔹₂ where
-  __ := PartialOrder_𝔹₂
-  sup := join_𝔹₂
+  __           := PartialOrder_𝔹₂
+  sup          := join_𝔹₂
   le_sup_left  := by intro a b ; cases a <;> cases b <;> trivial
   le_sup_right := by intro a b ; cases a <;> cases b <;> trivial
   sup_le       := by intro a b c h1 h2 ; cases a <;> cases b <;> cases c <;> trivial
 
 instance SemilatticeInf_𝔹₂ : SemilatticeInf 𝔹₂ where
-  __ := PartialOrder_𝔹₂
+  __           := PartialOrder_𝔹₂
   inf          := meet_𝔹₂
   inf_le_left  := by intro a b ; cases a <;> cases b <;> trivial
   inf_le_right := by intro a b ; cases a <;> cases b <;> trivial
