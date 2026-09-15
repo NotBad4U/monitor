@@ -153,14 +153,14 @@ def meet_𝔹₄ : 𝔹₄ → 𝔹₄ → 𝔹₄
   | .bot, .bot  => .bot
 
 instance SemilatticeSup_𝔹₄ : SemilatticeSup 𝔹₄ where
-  __ := PartialOrder_𝔹₄
+  __           := PartialOrder_𝔹₄
   sup          := join_𝔹₄
   le_sup_left  := by intro a b ; cases a <;> cases b <;> trivial
   le_sup_right := by intro a b ; cases a <;> cases b <;> trivial
   sup_le       := by intro a b c h1 h2 ; cases a <;> cases b <;> cases c <;> trivial
 
 instance SemilatticeInf_𝔹₄ : SemilatticeInf 𝔹₄ where
-  __ := PartialOrder_𝔹₄
+  __           := PartialOrder_𝔹₄
   inf          := meet_𝔹₄
   inf_le_left  := by intro a b ; cases a <;> cases b <;> trivial
   inf_le_right := by intro a b ; cases a <;> cases b <;> trivial
