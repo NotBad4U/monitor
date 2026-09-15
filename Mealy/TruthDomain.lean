@@ -49,7 +49,7 @@ instance PartialOrder_𝔹₂: PartialOrder 𝔹₂ where
   le_antisymm := by intros a b h1 h2 ; cases a <;> cases b <;> trivial
 
 -- ------------------------------------------------------------------------------------
--- Lattice for 𝔹₄
+-- Lattice for 𝔹₂
 -- ------------------------------------------------------------------------------------
 
 def join_𝔹₂ : 𝔹₂ → 𝔹₂ → 𝔹₂
@@ -87,7 +87,7 @@ theorem SamePreOrder_𝔹₂ : Lattice_𝔹₂.toPartialOrder = PartialOrder_�
   by rfl
 
 -- ------------------------------------------------------------------------------------
--- Lattice for 𝔹₂
+-- Boolean Lattice for 𝔹₂
 -- ------------------------------------------------------------------------------------
 
 instance BoundedOrder_𝔹₂ : BoundedOrder 𝔹₂ where
@@ -203,8 +203,8 @@ instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
   __ := Lattice_𝔹₄
   __ := BoundedOrder_𝔹₄
 
-instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₂ where
-  __         := BooleanLattice_𝔹₂
+instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ where
+  __         := BooleanLattice_𝔹₄
   distr_cap  := by intro a b c ; cases a <;> cases b <;> cases c <;> trivial
   distr_cup  := by intro a b c ; cases a <;> cases b <;> cases c <;> trivial
 
