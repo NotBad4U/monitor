@@ -1,3 +1,4 @@
+import Mathlib.Order.BoundedOrder.Basic -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html
 import Mathlib.Order.Defs.PartialOrder -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html
 import Mathlib.Order.Lattice -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Lattice.html
 
@@ -5,24 +6,17 @@ import Mathlib.Order.Lattice -- https://leanprover-community.github.io/mathlib4_
 
 namespace TruthDomain
 
--- Open Question: How this BooleanLattice should be instanciated?
+class BooleanLattice (A : Type) extends Lattice A, BoundedOrder A
 
-class BooleanLattice (A: Type) [PartialOrder A] where
-  bot: A
-  top: A
-  cup: A → A → A
-  cap: A → A → A
-
-infixl:65 "⊔" => BooleanLattice.cup
-infixl:70 "⊓" => BooleanLattice.cap
-
-class BooleanLatticeProperties (A: Type) [PartialOrder A] extends BooleanLattice A where
+class BooleanLatticeProperties (A: Type) extends BooleanLattice A where
   distr_cap : ∀ a b c : A, a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)
   distr_cup : ∀ a b c : A, a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)
 
 -- ====================================================================================
 -- 𝔹₂
 -- ====================================================================================
+
+-- This is already defined in Mathlib.Order.BooleanAlgebra
 
 inductive 𝔹₂ where
   | bot
@@ -55,10 +49,8 @@ instance PartialOrder_𝔹₂: PartialOrder 𝔹₂ where
   le_antisymm := by intros a b h1 h2 ; cases a <;> cases b <;> trivial
 
 -- ------------------------------------------------------------------------------------
--- Semi Lattice for 𝔹₂
+-- Lattice for 𝔹₄
 -- ------------------------------------------------------------------------------------
-
--- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Lattice.html#Lattices
 
 def join_𝔹₂ : 𝔹₂ → 𝔹₂ → 𝔹₂
   | .bot, .bot  => .bot
@@ -67,6 +59,8 @@ def join_𝔹₂ : 𝔹₂ → 𝔹₂ → 𝔹₂
 def meet_𝔹₂ : 𝔹₂ → 𝔹₂ → 𝔹₂
   | .top, .top  => .top
   | _, _        => .bot
+
+-- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Lattice.html#Lattices
 
 instance SemilatticeSup_𝔹₂ : SemilatticeSup 𝔹₂ where
   __           := PartialOrder_𝔹₂
@@ -83,13 +77,33 @@ instance SemilatticeInf_𝔹₂ : SemilatticeInf 𝔹₂ where
   le_inf       := by intro a b c h1 h2 ; cases a <;> cases b <;> cases c <;> trivial
 
 instance Lattice_𝔹₂ : Lattice 𝔹₂ where
-  __ := SemilatticeInf_𝔹₂
   __ := SemilatticeSup_𝔹₂
+  __ := SemilatticeInf_𝔹₂
+
 
 -- PartialOrder_𝔹₂ is imported twice ... It should the same
 
 theorem SamePreOrder_𝔹₂ : Lattice_𝔹₂.toPartialOrder = PartialOrder_𝔹₂ :=
   by rfl
+
+-- ------------------------------------------------------------------------------------
+-- Lattice for 𝔹₂
+-- ------------------------------------------------------------------------------------
+
+instance BoundedOrder_𝔹₂ : BoundedOrder 𝔹₂ where
+  bot := .bot
+  top := .top
+  bot_le := by intro a ; cases a <;> trivial
+  le_top := by intro a ; cases a <;> trivial
+
+instance BooleanLattice_𝔹₂ : BooleanLattice 𝔹₂ where
+  __ := Lattice_𝔹₂
+  __ := BoundedOrder_𝔹₂
+
+instance BooleanLatticeProperties_𝔹₂ : BooleanLatticeProperties 𝔹₂ where
+  __         := BooleanLattice_𝔹₂
+  distr_cap  := by intro a b c ; cases a <;> cases b <;> cases c <;> trivial
+  distr_cup  := by intro a b c ; cases a <;> cases b <;> cases c <;> trivial
 
 -- ====================================================================================
 -- 𝔹₄
@@ -131,7 +145,7 @@ instance PartialOrder_𝔹₄: PartialOrder 𝔹₄ where
   le_antisymm := by intros a b h1 h2 ; cases a <;> cases b <;> trivial
 
 -- ------------------------------------------------------------------------------------
--- Semi Lattice for 𝔹₄
+-- Lattice for 𝔹₄
 -- ------------------------------------------------------------------------------------
 
 def join_𝔹₄ : 𝔹₄ → 𝔹₄ → 𝔹₄
@@ -167,13 +181,32 @@ instance SemilatticeInf_𝔹₄ : SemilatticeInf 𝔹₄ where
   le_inf       := by intro a b c h1 h2 ; cases a <;> cases b <;> cases c <;> trivial
 
 instance Lattice_𝔹₄ : Lattice 𝔹₄ where
-  __ := SemilatticeInf_𝔹₄
   __ := SemilatticeSup_𝔹₄
+  __ := SemilatticeInf_𝔹₄
 
 -- PartialOrder_𝔹₄ is imported twice ... It should the same
 
 theorem SamePreOrder_𝔹₄ : Lattice_𝔹₄.toPartialOrder = PartialOrder_𝔹₄ :=
   by rfl
+
+-- ------------------------------------------------------------------------------------
+-- Boolean Lattice for 𝔹₄
+-- ------------------------------------------------------------------------------------
+
+instance BoundedOrder_𝔹₄ : BoundedOrder 𝔹₄ where
+  bot := .bot
+  top := .top
+  bot_le := by intro a ; cases a <;> trivial
+  le_top := by intro a ; cases a <;> trivial
+
+instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
+  __ := Lattice_𝔹₄
+  __ := BoundedOrder_𝔹₄
+
+instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₂ where
+  __         := BooleanLattice_𝔹₂
+  distr_cap  := by intro a b c ; cases a <;> cases b <;> cases c <;> trivial
+  distr_cup  := by intro a b c ; cases a <;> cases b <;> cases c <;> trivial
 
 -- ====================================================================================
 -- End of File
