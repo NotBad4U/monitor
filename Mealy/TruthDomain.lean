@@ -51,7 +51,7 @@ instance PreOrder_𝔹₂: Preorder 𝔹₂ where
 -- ------------------------------------------------------------------------------------
 
 instance PartialOrder_𝔹₂: PartialOrder 𝔹₂ where
-  __ := PreOrder_𝔹₂
+  __          := PreOrder_𝔹₂
   le_antisymm := by intros a b h1 h2 ; cases a <;> cases b <;> trivial
 
 -- ------------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ instance PreOrder_𝔹₄: Preorder 𝔹₄ where
 -- ------------------------------------------------------------------------------------
 
 instance PartialOrder_𝔹₄: PartialOrder 𝔹₄ where
-  __ := PreOrder_𝔹₄
+  __          := PreOrder_𝔹₄
   le_antisymm := by intros a b h1 h2 ; cases a <;> cases b <;> trivial
 
 -- ------------------------------------------------------------------------------------
