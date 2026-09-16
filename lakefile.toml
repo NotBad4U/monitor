@@ -12,3 +12,8 @@ root = "Main"
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
+
+[[require]]
+name = "«lean-fmt»"
+git = "https://github.com/jcreinhold/lean-fmt"
+rev = "v4.34.0-rc2"
