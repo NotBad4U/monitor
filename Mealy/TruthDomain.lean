@@ -1,4 +1,4 @@
-import Mathlib.Order.BoundedOrder.Basic -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html
+import Mathlib.Order.BoundedOrder.Basic -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/BoundedOrder/Basic.html
 import Mathlib.Order.Defs.PartialOrder -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html
 import Mathlib.Order.Lattice -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Lattice.html
 
@@ -7,6 +7,12 @@ import Mathlib.Order.Lattice -- https://leanprover-community.github.io/mathlib4_
 namespace TruthDomain
 
 class BooleanLattice (A : Type) extends Lattice A, BoundedOrder A
+
+/-
+  Notations are introduced in the Lattice class as follow:
+  - a ⊔ b: the supremum or join of a and b
+  - a ⊓ b: the infimum or meet of a and b
+-/
 
 class BooleanLatticeProperties (A: Type) extends BooleanLattice A where
   distr_cap : ∀ a b c : A, a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)
@@ -117,7 +123,7 @@ inductive 𝔹₄ where
 deriving instance BEq, Hashable for 𝔹₄
 
 -- ------------------------------------------------------------------------------------
--- Pre order for 𝔹₂
+-- Pre order for 𝔹₄
 -- ------------------------------------------------------------------------------------
 
 def le_𝔹₄ : 𝔹₄ → 𝔹₄ → Prop
