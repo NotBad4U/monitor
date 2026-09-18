@@ -21,7 +21,7 @@ class BooleanLatticeProperties (A : Type) extends BooleanLattice A where
   distr_cup : ∀ a b c : A, a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)
 
 class BooleanNegationProperties (A : Type) extends BooleanLattice A where
-  not_not : ∀ a : A, compl (compl a) = a
+  not_not : ∀ a : A, a ᶜ ᶜ = a
 
 namespace TruthDomain_𝔹₂
 
@@ -151,7 +151,6 @@ inductive 𝔹₄ where
   | botₚ
   | topₚ
   | top
-
 deriving instance BEq, Hashable for 𝔹₄
 
 -- ------------------------------------------------------------------------------------
