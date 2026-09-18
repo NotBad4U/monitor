@@ -33,12 +33,13 @@ notation "{ " e " }" => φ.ap e
 
 example : φ :=  ¬ { 1 } ∧ (𝑭 { 2 })
 
-notation "⟦ " w " ⊨ " p "⟧₄" => (w,p)
+set_option hygiene false in
+notation:200 "⟦ " w " ⊨ " p " ⟧₄" => sem w p
 
 open TruthDomain.TruthDomain_𝔹₄ in
-def sem : W × φ → 𝔹₄
-  | ⟦ _ ⊨ .true ⟧₄ => .top
-  | ⟦ _ ⊨ .false ⟧₄ => .top
-  | ⟦ w ⊨ .or φ ψ ⟧₄ => sem ⟦ w ⊨ φ ⟧₄ ⊔ sem ⟦ w ⊨ ψ ⟧₄
-  | ⟦ w ⊨ .and φ ψ ⟧₄ => sem ⟦ w ⊨ φ ⟧₄ ⊓ sem ⟦ w ⊨ ψ ⟧₄
-   |⟦ _ ⊨ _ ⟧₄ => .bot
+def sem {W : Type} (w : W) : φ → 𝔹₄
+  | .true    => .top
+  | .false   => .bot
+  | .or φ ψ  => ⟦ w ⊨ φ ⟧₄ ⊔ ⟦ w ⊨ ψ ⟧₄
+  | .and φ ψ => ⟦ w ⊨ φ ⟧₄ ⊓ ⟦ w ⊨ ψ ⟧₄
+  | _        => .bot
