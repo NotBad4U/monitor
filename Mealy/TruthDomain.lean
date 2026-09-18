@@ -6,7 +6,9 @@ import Mathlib.Order.Lattice -- https://leanprover-community.github.io/mathlib4_
 
 namespace TruthDomain
 
-class BooleanLattice (A : Type) extends Lattice A, BoundedOrder A
+
+-- This is already defined in Mathlib.Order.BooleanAlgebra
+class BooleanLattice (A : Type) extends Lattice A, BoundedOrder A, Compl A
 
 /-
   Notations are introduced in the Lattice class as follow:
@@ -18,13 +20,14 @@ class BooleanLatticeProperties (A : Type) extends BooleanLattice A where
   distr_cap : ∀ a b c : A, a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)
   distr_cup : ∀ a b c : A, a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)
 
+class BooleanNegationProperties (A : Type) extends BooleanLattice A where
+  not_not : ∀ a : A, compl (compl a) = a
+
 namespace TruthDomain_𝔹₂
 
 -- ====================================================================================
 -- 𝔹₂
 -- ====================================================================================
-
--- This is already defined in Mathlib.Order.BooleanAlgebra
 
 inductive 𝔹₂ where
   | bot
@@ -106,6 +109,10 @@ theorem SamePreOrder_𝔹₂ : Lattice_𝔹₂.toPartialOrder = PartialOrder_�
 -- Boolean Lattice for 𝔹₂
 -- ------------------------------------------------------------------------------------
 
+def not_𝔹₂ : 𝔹₂ → 𝔹₂
+  | .top => .bot
+  | .bot => .top
+
 instance BoundedOrder_𝔹₂ : BoundedOrder 𝔹₂ where
   bot := .bot
   top := .top
@@ -117,6 +124,7 @@ instance BoundedOrder_𝔹₂ : BoundedOrder 𝔹₂ where
 instance BooleanLattice_𝔹₂ : BooleanLattice 𝔹₂ where
   __ := Lattice_𝔹₂
   __ := BoundedOrder_𝔹₂
+  compl := not_𝔹₂
 
 instance BooleanLatticeProperties_𝔹₂ : BooleanLatticeProperties 𝔹₂ where
   __ := BooleanLattice_𝔹₂
@@ -124,6 +132,11 @@ instance BooleanLatticeProperties_𝔹₂ : BooleanLatticeProperties 𝔹₂ whe
     intro a b c; cases a <;> cases b <;> cases c <;> trivial
   distr_cup := by
     intro a b c; cases a <;> cases b <;> cases c <;> trivial
+
+instance BooleanNegationProperties_𝔹₂ : BooleanNegationProperties 𝔹₂ where
+  __ := BooleanLattice_𝔹₂
+  not_not := by
+    intro a; cases a <;> trivial
 
 end TruthDomain_𝔹₂
 
@@ -226,6 +239,12 @@ theorem SamePreOrder_𝔹₄ : Lattice_𝔹₄.toPartialOrder = PartialOrder_�
 -- Boolean Lattice for 𝔹₄
 -- ------------------------------------------------------------------------------------
 
+def not_𝔹₄ : 𝔹₄ → 𝔹₄
+  | .top => .bot
+  | .topₚ => .botₚ
+  | .botₚ => .topₚ
+  | .bot => .top
+
 instance BoundedOrder_𝔹₄ : BoundedOrder 𝔹₄ where
   bot := .bot
   top := .top
@@ -237,6 +256,7 @@ instance BoundedOrder_𝔹₄ : BoundedOrder 𝔹₄ where
 instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
   __ := Lattice_𝔹₄
   __ := BoundedOrder_𝔹₄
+  compl := not_𝔹₄
 
 instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ where
   __ := BooleanLattice_𝔹₄
@@ -244,6 +264,11 @@ instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ whe
     intro a b c; cases a <;> cases b <;> cases c <;> trivial
   distr_cup := by
     intro a b c; cases a <;> cases b <;> cases c <;> trivial
+
+instance BooleanNegationProperties_𝔹₄ : BooleanNegationProperties 𝔹₄ where
+  __ := BooleanLattice_𝔹₄
+  not_not := by
+    intro a; cases a <;> trivial
 
 end TruthDomain_𝔹₄
 -- ====================================================================================
