@@ -17,6 +17,8 @@ class BooleanLattice (A : Type) extends Lattice A, BoundedOrder A, Compl A
 -/
 
 class BooleanLatticeProperties (A : Type) extends BooleanLattice A where
+  assoc_cap : ∀ a b c : A, a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ c
+  assoc_cup : ∀ a b c : A, a ⊔ (b ⊔ c) = (a ⊔ b) ⊔ c
   distr_cap : ∀ a b c : A, a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)
   distr_cup : ∀ a b c : A, a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)
 
@@ -32,7 +34,6 @@ namespace TruthDomain_𝔹₂
 inductive 𝔹₂ where
   | bot
   | top
-
 deriving instance BEq, Hashable for 𝔹₂
 
 -- ------------------------------------------------------------------------------------
@@ -128,6 +129,10 @@ instance BooleanLattice_𝔹₂ : BooleanLattice 𝔹₂ where
 
 instance BooleanLatticeProperties_𝔹₂ : BooleanLatticeProperties 𝔹₂ where
   __ := BooleanLattice_𝔹₂
+  assoc_cap := by
+    intro a b c; cases a <;> cases b <;> cases c <;> trivial
+  assoc_cup := by
+    intro a b c; cases a <;> cases b <;> cases c <;> trivial
   distr_cap := by
     intro a b c; cases a <;> cases b <;> cases c <;> trivial
   distr_cup := by
@@ -259,6 +264,10 @@ instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
 
 instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ where
   __ := BooleanLattice_𝔹₄
+  assoc_cap := by
+    intro a b c; cases a <;> cases b <;> cases c <;> trivial
+  assoc_cup := by
+    intro a b c; cases a <;> cases b <;> cases c <;> trivial
   distr_cap := by
     intro a b c; cases a <;> cases b <;> cases c <;> trivial
   distr_cup := by
