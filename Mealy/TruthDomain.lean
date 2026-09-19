@@ -257,6 +257,13 @@ instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
   __ := BoundedOrder_𝔹₄
   compl := not_𝔹₄
 
+-- 𝔹₄ is not a Boolean algebra: `botₚ ⊓ botₚᶜ = botₚ ≠ ⊥` and `botₚ ⊔ botₚᶜ = topₚ ≠ ⊤`.
+lemma not_inf_compl_eq_bot₄ : ¬ ∀ a : 𝔹₄, a ⊓ aᶜ = ⊥ := by
+  intro h; cases h .botₚ
+
+lemma not_sup_compl_eq_top₄ : ¬ ∀ a : 𝔹₄, a ⊔ aᶜ = ⊤ := by
+  intro h; cases h .botₚ
+
 instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ where
   __ := BooleanLattice_𝔹₄
   distr_cap := by
@@ -268,6 +275,42 @@ instance BooleanNegationProperties_𝔹₄ : BooleanNegationProperties 𝔹₄ w
   __ := BooleanLattice_𝔹₄
   not_not := by
     intro a; cases a <;> trivial
+
+@[simp]
+lemma compl_compl₄ (a : 𝔹₄) : aᶜᶜ = a := by cases a <;> rfl
+
+@[simp]
+lemma compl_sup₄ (a b : 𝔹₄) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ := by cases a <;> cases b <;> rfl
+
+@[simp]
+lemma compl_inf₄ (a b : 𝔹₄) : (a ⊓ b)ᶜ = aᶜ ⊔ bᶜ := by cases a <;> cases b <;> rfl
+
+@[simp]
+lemma compl_bot₄ : (𝔹₄.bot)ᶜ = .top := rfl
+
+@[simp]
+lemma compl_botₚ : (𝔹₄.botₚ)ᶜ = .topₚ := rfl
+
+@[simp]
+lemma compl_topₚ : (𝔹₄.topₚ)ᶜ = .botₚ := rfl
+
+@[simp]
+lemma compl_top₄ : (𝔹₄.top)ᶜ = .bot := rfl
+
+-- 𝔹₄ is a DeMorgan Algebra:
+
+-- https://ncatlab.org/nlab/show/De+Morgan+algebra
+class DeMorganAlgebra (A : Type) extends DistribLattice A, BoundedOrder A, Compl A where
+  compl_compl : ∀ a : A, aᶜᶜ = a
+  compl_sup   : ∀ a b : A, (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ
+
+instance DeMorganAlgebra_𝔹₄ : DeMorganAlgebra 𝔹₄ where
+  __ := BooleanLattice_𝔹₄
+  le_sup_inf := by
+    intro x y z
+    rw [BooleanLatticeProperties.distr_cup]
+  compl_compl := compl_compl₄
+  compl_sup := compl_sup₄
 
 end TruthDomain_𝔹₄
 -- ====================================================================================

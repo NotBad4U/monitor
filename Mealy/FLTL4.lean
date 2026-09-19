@@ -23,6 +23,8 @@ inductive  φ : Type (u + 1) where
   | globally : φ → φ
 deriving DecidableEq, Repr
 
+variable {α}
+
 prefix:60 "~ " => φ.not
 infixr:130 " ⋀ " => φ.and
 infixr:130 " ⋁ " => φ.or
@@ -45,24 +47,86 @@ def exampleNat : φ ℕ := (𝑮 (⟪ 1 ⟫ 𝑼 ⟪ 2 ⟫)) ⋀ (𝑮 (~ ⟪ 0 
 
 def exampleString : φ String := (𝑮 (⟪ "a" ⟫ 𝑼 ⟪ "b" ⟫)) ⋀ (𝑮 (~ ⟪ "c" ⟫))
 
+-- Put a formula φ into a Negation Normal Form i.e negation on the leaves
+def nnf : φ α → φ α
+  | ~ ⊤ => ⊥
+  | ~ ⊥ => ⊤
+  | ~ ⟪ x ⟫ => ~ ⟪ x ⟫
+  | ~ ~ φ => nnf φ
+  | ~ (φ ⋁ ψ) => (nnf (~ φ)) ⋀ (nnf (~ ψ))
+  | ~ (φ ⋀ ψ) => (nnf (~ φ)) ⋁ (nnf (~ ψ))
+  | ~ 𝑿 φ => X̅ (nnf (~ φ))
+  | ~ X̅ φ => 𝑿 (nnf (~ φ))
+  | ~ 𝑮 φ => 𝑭 (nnf (~ φ))
+  | ~ 𝑭 φ => 𝑮 (nnf (~ φ))
+  | ~ (φ 𝑼 ψ) => (nnf (~ φ)) 𝑹 (nnf (~ ψ))
+  | ~ (φ 𝑹 ψ) => (nnf (~ φ)) 𝑼 (nnf (~ ψ))
+  | φ ⋀ ψ => (nnf φ) ⋀ (nnf ψ)
+  | φ ⋁ ψ => (nnf φ) ⋁ (nnf ψ)
+  | 𝑿 φ => 𝑿 (nnf φ)
+  | X̅ φ => X̅ (nnf φ)
+  | 𝑮 φ => 𝑮 (nnf φ)
+  | 𝑭 φ => 𝑭 (nnf φ)
+  | φ 𝑼 ψ => (nnf φ) 𝑼 (nnf ψ)
+  | φ 𝑹 ψ => (nnf φ) 𝑹 (nnf ψ)
+  | ⊤ => ⊤
+  | ⊥ => ⊥
+  | ⟪ x ⟫ => ⟪ x ⟫
+
+-- Decidable predicate to check if a formula φ is in Negation Normal Form
+def is_nnf : φ α → Bool
+  | ~ ⊤ => false -- ~ ⊤ => ⊥
+  | ~ ⊥ => false -- ~ ⊥ => ⊤
+  | ~ ⟪ _ ⟫ => true
+  | ~ ~ _ => false
+  | ~ (_ ⋁ _) => false
+  | ~ (_ ⋀ _) => false
+  | ~ 𝑿 _ => false
+  | ~ X̅ _ => false
+  | ~ 𝑮 _ => false
+  | ~ 𝑭 _ => false
+  | ~ (_ 𝑼 _) => false
+  | ~ (_ 𝑹 _) => false
+  | φ ⋀ ψ => (is_nnf φ) && (is_nnf ψ)
+  | φ ⋁ ψ => (is_nnf φ) && (is_nnf ψ)
+  | 𝑿 φ => (is_nnf φ)
+  | X̅ φ => (is_nnf φ)
+  | 𝑮 φ => (is_nnf φ)
+  | 𝑭 φ => (is_nnf φ)
+  | φ 𝑼 ψ => (is_nnf φ) && (is_nnf ψ)
+  | φ 𝑹 ψ => (is_nnf φ) && (is_nnf ψ)
+  | ⊤ => true
+  | ⊥ => true
+  | ⟪ _ ⟫ => true
+
+-- `nnf` always produces a formula in negation normal form
+omit [DecidableEq α] in -- Recommended by Lean
+theorem nnf_is_nnf (f : φ α) : is_nnf (nnf f) = true := by
+  induction f using nnf.induct <;> simp_all [nnf, is_nnf]
+
 set_option hygiene false in
 notation:200 "⟦ " w " ⊨ " p " ⟧" => sem w p
 
 abbrev lookup (w : List α) (i : ℕ) (x : α) : 𝔹₄ := if w[i - 1]? = .some x then .top else .bot
+
 abbrev nlookup (w : List α) (i : ℕ) (x : α) : 𝔹₄ := if w[i - 1]? = .some x then .bot else .top
+
+@[simp]
+lemma compl_lookup (w : List α) (i : ℕ) (x : α) : (lookup w i x)ᶜ = nlookup w i x := by
+  unfold lookup nlookup; split <;> rfl
 
 syntax:50 (name := memAt) term:51 " ∈ " ident "[" term "]" : term
 syntax:50 (name := notMemAt) term:51 " ∉ " ident "[" term "]" : term
 
 macro_rules (kind := memAt)
-  | `($x ∈ $w:ident[$i]) => `(lookup _ $w $i $x)
+  | `($x ∈ $w:ident[$i]) => `(lookup $w $i $x)
 
 macro_rules (kind := notMemAt)
-  | `($x ∉ $w:ident[$i]) => `(nlookup _ $w $i $x)
+  | `($x ∉ $w:ident[$i]) => `(nlookup $w $i $x)
 
 
 macro_rules (kind := notMemAt)
-  | `($x ∉ $w:ident[$i]) => `(nlookup _ $w $i $x)
+  | `($x ∉ $w:ident[$i]) => `(nlookup $w $i $x)
 
 -- `| w |` : join / meet of `f i` over the positions `i` of `w`
 syntax:67 (name := card) "| " term " |" : term
@@ -92,5 +156,32 @@ def sem (w : List α) : φ α → 𝔹₄
   | X̅ φ => if w.isEmpty = false then ⟦ w.tail ⊨ φ ⟧ else .topₚ
   | 𝑮 φ => .botₚ ⊔ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧)
   | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧)
-  | φ 𝑼 ψ => ⨆ i ∈ w.length, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧)) ⊔ (.botₚ ⊓ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
-  | φ 𝑹 ψ => ⨆ i ∈ w.length, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧)) ⊔ (.topₚ ⊓ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
+  | φ 𝑼 ψ => (⨆ i ∈ w.length, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊔ (.botₚ ⊓ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
+  | φ 𝑹 ψ => (⨅ i ∈ w.length, (⟦ w.drop i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊓ (.topₚ ⊔ (⨅ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
+
+@[simp]
+lemma compl_range_sup (n : ℕ) (f : ℕ → 𝔹₄) :
+    ((Finset.range n).sup f)ᶜ = (Finset.range n).inf (fun i => (f i)ᶜ) := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [Finset.range_add_one, ih]
+
+@[simp]
+lemma compl_range_inf (n : ℕ) (f : ℕ → 𝔹₄) :
+    ((Finset.range n).inf f)ᶜ = (Finset.range n).sup (fun i => (f i)ᶜ) := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [Finset.range_add_one, ih]
+
+@[simp]
+lemma compl_ite₄ (c : Prop) [Decidable c] (a b : 𝔹₄) :
+    (if c then a else b)ᶜ = if c then aᶜ else bᶜ := by split <;> rfl
+
+@[simp]
+lemma sem_not (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ w ⊨ f ⟧)ᶜ := by
+  cases f with
+  | ap x => simp [sem]
+  | _ => simp [sem]
+
+theorem sem_nnf_equiv (w : List α) (f : φ α) : ⟦ w ⊨ nnf f ⟧ = ⟦ w ⊨ f ⟧ := by
+  induction f using nnf.induct generalizing w <;> simp_all [nnf, sem]
