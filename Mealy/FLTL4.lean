@@ -43,6 +43,11 @@ notation "⟪ " e " ⟫" => φ.ap e
 notation " ⊤ " => φ.true
 notation " ⊥ " => φ.false
 
+-- Implication as a derived connective: a ⟶ b := ~a ⋁ b
+abbrev φ.impl (a b : φ α) : φ α := (~ a) ⋁ b
+
+infixr:105 " ⟶ " => φ.impl
+
 def exampleNat : φ ℕ := (𝑮 (⟪ 1 ⟫ 𝑼 ⟪ 2 ⟫)) ⋀ (𝑮 (~ ⟪ 0 ⟫))
 
 def exampleString : φ String := (𝑮 (⟪ "a" ⟫ 𝑼 ⟪ "b" ⟫)) ⋀ (𝑮 (~ ⟪ "c" ⟫))
@@ -180,8 +185,31 @@ lemma compl_ite₄ (c : Prop) [Decidable c] (a b : 𝔹₄) :
 @[simp]
 lemma sem_not (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ w ⊨ f ⟧)ᶜ := by
   cases f with
-  | ap x => simp [sem]
+  | ap x => simp [sem, nlookup]
   | _ => simp [sem]
 
 theorem sem_nnf_equiv (w : List α) (f : φ α) : ⟦ w ⊨ nnf f ⟧ = ⟦ w ⊨ f ⟧ := by
-  induction f using nnf.induct generalizing w <;> simp_all [nnf, sem]
+  induction f using nnf.induct generalizing w <;> simp_all [nnf, sem, nlookup]
+
+omit [DecidableEq α] in
+lemma nnf_impl (a b : φ α) : nnf (a ⟶ b) = nnf (~ a) ⋁ nnf b := by simp [nnf]
+
+lemma sem_impl (w : List α) (a b : φ α) : ⟦ w ⊨ a ⟶ b ⟧ = (⟦ w ⊨ a ⟧ ⇒ ⟦ w ⊨ b ⟧) := by
+  simp [sem, impl_def₄]
+
+-- https://en.wikipedia.org/wiki/Modal_logic
+
+-- K i.e. arbitrary Kripke frame : □ (a → b) ⊢ □ a → □ b
+lemma sem_frame (w : List α) (a b : φ α) : ⟦ w ⊨ 𝑮 (a ⟶ b) ⟧ ≤ ⟦ w ⊨ (𝑮 a) ⟶ (𝑮 b) ⟧ := by sorry
+
+-- 4 i.e transitivitt : □p ⊢ □□p
+lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑮 f ⟧ := by sorry
+
+-- T i.e. reflexivity □p ⊢ p
+lemma sem_reflexivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by sorry
+
+-- B i.e. symmetry p ⊢ □♢p
+lemma sem_symmetry (w : List α) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry
+
+-- 5 i.e euclideanity  ♢p → ◻◊p
+lemma sem_euclideanity  (w : List α) (f : φ α) : ⟦ w ⊨ 𝑭 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry

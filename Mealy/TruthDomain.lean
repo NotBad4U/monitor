@@ -286,7 +286,13 @@ lemma compl_sup₄ (a b : 𝔹₄) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ := by cases a 
 lemma compl_inf₄ (a b : 𝔹₄) : (a ⊓ b)ᶜ = aᶜ ⊔ bᶜ := by cases a <;> cases b <;> rfl
 
 @[simp]
-lemma compl_bot₄ : (𝔹₄.bot)ᶜ = .top := rfl
+lemma bot_eq₄ : 𝔹₄.bot = ⊥ := rfl
+
+@[simp]
+lemma top_eq₄ : 𝔹₄.top = ⊤ := rfl
+
+@[simp]
+lemma compl_bot₄ : (⊥ : 𝔹₄)ᶜ = ⊤ := rfl
 
 @[simp]
 lemma compl_botₚ : (𝔹₄.botₚ)ᶜ = .topₚ := rfl
@@ -295,7 +301,20 @@ lemma compl_botₚ : (𝔹₄.botₚ)ᶜ = .topₚ := rfl
 lemma compl_topₚ : (𝔹₄.topₚ)ᶜ = .botₚ := rfl
 
 @[simp]
-lemma compl_top₄ : (𝔹₄.top)ᶜ = .bot := rfl
+lemma compl_top₄ : (⊤ : 𝔹₄)ᶜ = ⊥ := rfl
+
+-- Join / meet of the two "presumably" values (the other cases are covered by Mathlib)
+@[simp]
+lemma botₚ_sup_topₚ : 𝔹₄.botₚ ⊔ 𝔹₄.topₚ = .topₚ := rfl
+
+@[simp]
+lemma topₚ_sup_botₚ : 𝔹₄.topₚ ⊔ 𝔹₄.botₚ = .topₚ := rfl
+
+@[simp]
+lemma botₚ_inf_topₚ : 𝔹₄.botₚ ⊓ 𝔹₄.topₚ = .botₚ := rfl
+
+@[simp]
+lemma topₚ_inf_botₚ : 𝔹₄.topₚ ⊓ 𝔹₄.botₚ = .botₚ := rfl
 
 -- 𝔹₄ is a DeMorgan Algebra:
 
@@ -311,6 +330,47 @@ instance DeMorganAlgebra_𝔹₄ : DeMorganAlgebra 𝔹₄ where
     rw [BooleanLatticeProperties.distr_cup]
   compl_compl := compl_compl₄
   compl_sup := compl_sup₄
+
+-- ------------------------------------------------------------------------------------
+-- Implication for 𝔹₄
+-- ------------------------------------------------------------------------------------
+
+-- Semantic Kleene implication
+def impl_𝔹₄ (a b : 𝔹₄) : 𝔹₄ := aᶜ ⊔ b
+
+infixr:60 " ⇒ " => impl_𝔹₄
+
+-- Not simp: unfold on demand with `simp [impl_def₄]`, otherwise it hides the lemmas below.
+lemma impl_def₄ (a b : 𝔹₄) : (a ⇒ b) = aᶜ ⊔ b := rfl
+
+@[simp]
+lemma bot_impl₄ (a : 𝔹₄) : (⊥ ⇒ a) = ⊤ := by cases a <;> rfl
+
+@[simp]
+lemma impl_top₄ (a : 𝔹₄) : (a ⇒ ⊤) = ⊤ := by cases a <;> rfl
+
+@[simp]
+lemma top_impl₄ (a : 𝔹₄) : (⊤ ⇒ a) = a := by cases a <;> rfl
+
+-- Contraposition (not simp: it would loop)
+lemma impl_contra₄ (a b : 𝔹₄) : (a ⇒ b) = (bᶜ ⇒ aᶜ) := by cases a <;> cases b <;> rfl
+
+-- Like the Boolean laws above, `a ⇒ a = ⊤` fails: `botₚ ⇒ botₚ = topₚ`.
+lemma not_impl_self₄ : ¬ ∀ a : 𝔹₄, (a ⇒ a) = ⊤ := by
+  intro h; cases h .botₚ
+
+-- `a ⇒ a = ⊤` holds exactly on the definite values ⊥ and ⊤ ...
+@[simp]
+lemma impl_self_eq_top₄ (a : 𝔹₄) : (a ⇒ a) = ⊤ ↔ a = ⊥ ∨ a = ⊤ := by
+  cases a
+  · exact iff_of_true rfl (Or.inl rfl)
+  · exact iff_of_false (fun h => by cases h) (by rintro (h | h) <;> cases h)
+  · exact iff_of_false (fun h => by cases h) (by rintro (h | h) <;> cases h)
+  · exact iff_of_true rfl (Or.inr rfl)
+
+@[simp]
+lemma topₚ_le_impl_self₄ (a : 𝔹₄) : 𝔹₄.topₚ ≤ (a ⇒ a) := by
+  cases a <;> trivial
 
 end TruthDomain_𝔹₄
 -- ====================================================================================
