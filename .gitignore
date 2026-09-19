@@ -21,3 +21,7 @@
 .claude
 
 *.pdf
+
+.vscode
+dist-newstyle
+.DS_STORE
