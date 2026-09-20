@@ -1,6 +1,7 @@
 import Mathlib.Order.BoundedOrder.Basic -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/BoundedOrder/Basic.html
 import Mathlib.Order.Defs.PartialOrder -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html
-import Mathlib.Order.Lattice -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Lattice.html
+import Mathlib.Order.Lattice
+import Mathlib.Data.Finset.Lattice.Fold -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Lattice.html
 
 -- https://lean-lang.org/doc/reference/latest/Namespaces-and-Sections/
 
@@ -158,6 +159,10 @@ inductive 𝔹₄ where
   | top
 deriving instance BEq, Hashable for 𝔹₄
 
+-- Notation for the two "presumably" values
+notation "⊥ₚ" => 𝔹₄.botₚ
+notation "⊤ₚ" => 𝔹₄.topₚ
+
 -- ------------------------------------------------------------------------------------
 -- Pre order for 𝔹₄
 -- ------------------------------------------------------------------------------------
@@ -165,13 +170,15 @@ deriving instance BEq, Hashable for 𝔹₄
 def le_𝔹₄ : 𝔹₄ → 𝔹₄ → Prop
   | .bot, _ => True
   | _, .bot => False
-  | .botₚ, _ => True
-  | _, .botₚ => False
-  | .topₚ, _ => True
-  | _, .topₚ => False
+  | ⊥ₚ, _ => True
+  | _, ⊥ₚ => False
+  | ⊤ₚ, _ => True
+  | _, ⊤ₚ => False
   | .top, .top => True
 
 notation a "⊆₄" b => le_𝔹₄ a b
+
+
 
 instance PreOrder_𝔹₄ : Preorder 𝔹₄ where
   le := le_𝔹₄
@@ -196,19 +203,19 @@ instance PartialOrder_𝔹₄ : PartialOrder 𝔹₄ where
 def join_𝔹₄ : 𝔹₄ → 𝔹₄ → 𝔹₄
   | .bot, p => p
   | p, .bot => p
-  | .botₚ, p => p
-  | p, .botₚ => p
-  | .topₚ, p => p
-  | p, .topₚ => p
+  | ⊥ₚ, p => p
+  | p, ⊥ₚ => p
+  | ⊤ₚ, p => p
+  | p, ⊤ₚ => p
   | .top, .top => .top
 
 def meet_𝔹₄ : 𝔹₄ → 𝔹₄ → 𝔹₄
   | .top, p => p
   | p, .top => p
-  | .topₚ, p => p
-  | p, .topₚ => p
-  | .botₚ, p => p
-  | p, .botₚ => p
+  | ⊤ₚ, p => p
+  | p, ⊤ₚ => p
+  | ⊥ₚ, p => p
+  | p, ⊥ₚ => p
   | .bot, .bot => .bot
 
 instance SemilatticeSup_𝔹₄ : SemilatticeSup 𝔹₄ where
@@ -245,8 +252,8 @@ theorem SamePreOrder_𝔹₄ : Lattice_𝔹₄.toPartialOrder = PartialOrder_�
 
 def not_𝔹₄ : 𝔹₄ → 𝔹₄
   | .top => .bot
-  | .topₚ => .botₚ
-  | .botₚ => .topₚ
+  | ⊤ₚ => ⊥ₚ
+  | ⊥ₚ => ⊤ₚ
   | .bot => .top
 
 instance BoundedOrder_𝔹₄ : BoundedOrder 𝔹₄ where
@@ -264,10 +271,10 @@ instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
 
 -- 𝔹₄ is not a Boolean algebra: `botₚ ⊓ botₚᶜ = botₚ ≠ ⊥` and `botₚ ⊔ botₚᶜ = topₚ ≠ ⊤`.
 lemma not_inf_compl_eq_bot₄ : ¬ ∀ a : 𝔹₄, a ⊓ aᶜ = ⊥ := by
-  intro h; cases h .botₚ
+  intro h; cases h ⊥ₚ
 
 lemma not_sup_compl_eq_top₄ : ¬ ∀ a : 𝔹₄, a ⊔ aᶜ = ⊤ := by
-  intro h; cases h .botₚ
+  intro h; cases h ⊥ₚ
 
 instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ where
   __ := BooleanLattice_𝔹₄
@@ -304,26 +311,26 @@ lemma top_eq₄ : 𝔹₄.top = ⊤ := rfl
 lemma compl_bot₄ : (⊥ : 𝔹₄)ᶜ = ⊤ := rfl
 
 @[simp]
-lemma compl_botₚ : (𝔹₄.botₚ)ᶜ = .topₚ := rfl
+lemma compl_botₚ : (⊥ₚ)ᶜ = ⊤ₚ := rfl
 
 @[simp]
-lemma compl_topₚ : (𝔹₄.topₚ)ᶜ = .botₚ := rfl
+lemma compl_topₚ : (⊤ₚ)ᶜ = ⊥ₚ := rfl
 
 @[simp]
 lemma compl_top₄ : (⊤ : 𝔹₄)ᶜ = ⊥ := rfl
 
 -- Join / meet of the two "presumably" values (the other cases are covered by Mathlib)
 @[simp]
-lemma botₚ_sup_topₚ : 𝔹₄.botₚ ⊔ 𝔹₄.topₚ = .topₚ := rfl
+lemma botₚ_sup_topₚ : ⊥ₚ ⊔ ⊤ₚ = ⊤ₚ := rfl
 
 @[simp]
-lemma topₚ_sup_botₚ : 𝔹₄.topₚ ⊔ 𝔹₄.botₚ = .topₚ := rfl
+lemma topₚ_sup_botₚ : ⊤ₚ ⊔ ⊥ₚ = ⊤ₚ := rfl
 
 @[simp]
-lemma botₚ_inf_topₚ : 𝔹₄.botₚ ⊓ 𝔹₄.topₚ = .botₚ := rfl
+lemma botₚ_inf_topₚ : ⊥ₚ ⊓ ⊤ₚ = ⊥ₚ := rfl
 
 @[simp]
-lemma topₚ_inf_botₚ : 𝔹₄.topₚ ⊓ 𝔹₄.botₚ = .botₚ := rfl
+lemma topₚ_inf_botₚ : ⊤ₚ ⊓ ⊥ₚ = ⊥ₚ := rfl
 
 -- 𝔹₄ is a DeMorgan Algebra:
 
@@ -366,7 +373,7 @@ lemma impl_contra₄ (a b : 𝔹₄) : (a ⇒ b) = (bᶜ ⇒ aᶜ) := by cases a
 
 -- Like the Boolean laws above, `a ⇒ a = ⊤` fails: `botₚ ⇒ botₚ = topₚ`.
 lemma not_impl_self₄ : ¬ ∀ a : 𝔹₄, (a ⇒ a) = ⊤ := by
-  intro h; cases h .botₚ
+  intro h; cases h ⊥ₚ
 
 -- `a ⇒ a = ⊤` holds exactly on the definite values ⊥ and ⊤ ...
 @[simp]
@@ -378,10 +385,5 @@ lemma impl_self_eq_top₄ (a : 𝔹₄) : (a ⇒ a) = ⊤ ↔ a = ⊥ ∨ a = �
   · exact iff_of_true rfl (Or.inr rfl)
 
 @[simp]
-lemma topₚ_le_impl_self₄ (a : 𝔹₄) : 𝔹₄.topₚ ≤ (a ⇒ a) := by
+lemma topₚ_le_impl_self₄ (a : 𝔹₄) : ⊤ₚ ≤ (a ⇒ a) := by
   cases a <;> trivial
-
-end TruthDomain_𝔹₄
--- ====================================================================================
--- End of File
--- ====================================================================================
