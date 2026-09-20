@@ -148,19 +148,19 @@ macro_rules (kind := notMemAt)
 syntax :67 (name := card) "| " term " |" : term
 
 -- `⨆ i ∈ w, f i` : join of `f i` over the positions `i` of `w`
-syntax :67 (name := supPos) "⨆ " ident " ∈ " ident ", " term : term
+syntax :67 (name := supPos) "⨆ " ident " ∈ " term ", " term : term
 
 -- ``⨅ i ∈ w, f i` : meet of `f i` over the positions `i` of `w`
-syntax :67 (name := infPos) "⨅ " ident " ∈ " ident ", " term : term
+syntax :67 (name := infPos) "⨅ " ident " ∈ " term ", " term : term
 
 macro_rules (kind := card)
   | `(| $w:ident |) => `(List.length $w)
 
 macro_rules (kind := supPos)
-  | `(⨆ $i:ident ∈ $w:ident, $f) => `((Finset.range $w).sup fun $i => $f)
+  | `(⨆ $i:ident ∈ $w:term, $f) => `((Finset.range $w).sup fun $i => $f)
 
 macro_rules (kind := infPos)
-  | `(⨅ $i:ident ∈ $w:ident, $f) => `((Finset.range $w).inf fun $i => $f)
+  | `(⨅ $i:ident ∈ $w:term, $f) => `((Finset.range $w).inf fun $i => $f)
 
 def sem (w : List α) : φ α → 𝔹₄
   | ⊤ => .top
@@ -170,16 +170,18 @@ def sem (w : List α) : φ α → 𝔹₄
   | ~ φ => (⟦ w ⊨ φ ⟧)ᶜ
   | φ ⋁ ψ => ⟦ w ⊨ φ ⟧ ⊔ ⟦ w ⊨ ψ ⟧
   | φ ⋀ ψ => ⟦ w ⊨ φ ⟧ ⊓ ⟦ w ⊨ ψ ⟧
-  | 𝑿 φ => if w.isEmpty = false then ⟦ w.tail ⊨ φ ⟧ else .botₚ
-  | X̅ φ => if w.isEmpty = false then ⟦ w.tail ⊨ φ ⟧ else .topₚ
-  | 𝑮 φ => .botₚ ⊔ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧)
-  | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧)
+  | 𝑿 φ => if | w | > 0 then ⟦ w.tail ⊨ φ ⟧ else .botₚ
+  | X̅ φ => if | w | > 0 then ⟦ w.tail ⊨ φ ⟧ else .topₚ
+  | 𝑮 φ => .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧)
+  | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧)
   | φ 𝑼 ψ =>
-    (⨆ i ∈ w.length, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊔
+    (⨆ i ∈ | w |, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊔
       (.botₚ ⊓ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
   | φ 𝑹 ψ =>
-    (⨅ i ∈ w.length, (⟦ w.drop i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊓
+    (⨅ i ∈ | w |, (⟦ w.drop i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊓
       (.topₚ ⊔ (⨅ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
+
+-- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
 
 @[simp]
 lemma or_associativity :
@@ -187,7 +189,6 @@ lemma or_associativity :
   intro w a b c
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.assoc_cup ..
-  -- or rw [BooleanLatticeProperties_𝔹₄.assoc_cup]
 
 @[simp]
 lemma and_associativity :
