@@ -229,10 +229,11 @@ def sem (w : List α) : φ α → 𝔹₄
   | 𝑭 φ => ⊥ₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
   | φ 𝑼 ψ =>
     (⨆ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊔
-      (⊥ₚ ⊓ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
+      (⊥ₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
   | φ 𝑹 ψ =>
-    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊓
-      (⊤ₚ ⊔ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
+    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ φ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ ψ ⟧))) ⊔
+      (⊥ₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ ψ ⟧))
+
 
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
 
@@ -251,7 +252,7 @@ lemma and_associativity :
   exact BooleanLatticeProperties_𝔹₄.assoc_cap ..
 
 -- Semantic equivalence between 𝑭𝜑 and true 𝐔 𝜑
-@[simp]
+-- (not `@[simp]` : it rewrites 𝑭 into 𝑼 inside other proofs, e.g. `sem_nnf_equiv`)
 lemma equiv_F (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by sorry
   -- ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧
   -- simplify with sem
@@ -265,7 +266,6 @@ lemma equiv_F (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 
   -- equality
 
 -- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
-@[simp]
 lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by sorry
 
 @[simp]
