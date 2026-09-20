@@ -231,8 +231,8 @@ def sem (w : List α) : φ α → 𝔹₄
     (⨆ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊔
       (⊥ₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
   | φ 𝑹 ψ =>
-    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ φ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ ψ ⟧))) ⊔
-      (⊥ₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ ψ ⟧))
+    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊓
+      (⊤ₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
 
 
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
@@ -251,19 +251,36 @@ lemma and_associativity :
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.assoc_cap ..
 
+@[simp]
+lemma inf_top_eq_top (i : ℕ) : (⨅ _j < i, 𝔹₄.top) = 𝔹₄.top := Finset.inf_top _
+
+@[simp]
+lemma sup_bot_eq_bot (i : ℕ) : (⨆ _j < i, 𝔹₄.bot) = 𝔹₄.bot := Finset.sup_bot _
+
+
 -- Semantic equivalence between 𝑭𝜑 and true 𝐔 𝜑
--- (not `@[simp]` : it rewrites 𝑭 into 𝑼 inside other proofs, e.g. `sem_nnf_equiv`)
-lemma equiv_F (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by sorry
-  -- ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧
-  -- simplify with sem
-  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ .true ⟧))) ⊔ (.botₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ true ⟧))
-  -- simplify with sem again for .true only
-  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ ⊤)) ⊔ (.botₚ ⊓ .top)
-  -- apply join
-  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) ⊔ .botₚ
-  -- commutativity
-  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧)
-  -- equality
+-- Sketch of the proof:
+-- ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧
+-- simplify with sem
+-- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ .true ⟧))) ⊔ (.botₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ true ⟧))
+-- simplify with sem again for .true only
+-- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ ⊤)) ⊔ (.botₚ ⊓ .top)
+-- apply join
+-- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) ⊔ .botₚ
+-- commutativity
+-- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧)
+-- equality
+lemma eq_sem_F_with_U (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by
+   simp only [sem]
+   simp only [inf_top_eq_top]
+   simp [sup_comm ]
+
+-- Semantic equivalence between 𝑮𝜑 and false 𝑹 ϕ
+lemma eq_sem_G_with_R (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ .false 𝑹 f ⟧ := by
+  simp only [sem]
+  simp [inf_comm]
+
+
 
 -- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
 lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by sorry

@@ -667,10 +667,10 @@ The four maxims below say precisely what we expect from such a semantics.
                                        ) \
                                      \
         sem(w tack.rr φ bold("R") ψ) & = inter.sq.big_(1 <= i <= abs(w)) (
-                                         sem(w^i tack.rr φ) inter.sq inter.sq.big_(1 <= j <= i) sem(w^j tack.rr ψ)
+                                         sem(w^i tack.rr ψ) union.sq union.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
                                        )
-                                       union.sq (
-                                         text(fill: cteal, top^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr ψ)
+                                       inter.sq (
+                                         text(fill: cteal, top^p) union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
                                        )
       $
 
