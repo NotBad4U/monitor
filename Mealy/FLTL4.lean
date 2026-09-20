@@ -159,6 +159,13 @@ syntax :67 (name := infPos) "⨅ " ident " ∈ " term ", " term : term
 macro_rules (kind := infPos)
   | `(⨅ $i:ident ∈ $w:term, $f) => `((Finset.range $w).inf fun $i => $f)
 
+-- ``⨅ i ∈ w, f i` : meet of `f i` over the positions `i` of `w`
+syntax:75 (name := drop) ident "^" term:76 : term
+
+macro_rules (kind := drop)
+  | `($w:ident ^ $i:term) => `(List.drop $i $w)
+
+
 def sem (w : List α) : φ α → 𝔹₄
   | ⊤ => .top
   | ⊥ => .bot
@@ -167,16 +174,16 @@ def sem (w : List α) : φ α → 𝔹₄
   | ~ φ => (⟦ w ⊨ φ ⟧)ᶜ
   | φ ⋁ ψ => ⟦ w ⊨ φ ⟧ ⊔ ⟦ w ⊨ ψ ⟧
   | φ ⋀ ψ => ⟦ w ⊨ φ ⟧ ⊓ ⟦ w ⊨ ψ ⟧
-  | 𝑿 φ => if | w | > 0 then ⟦ w.tail ⊨ φ ⟧ else .botₚ
-  | X̅ φ => if | w | > 0 then ⟦ w.tail ⊨ φ ⟧ else .topₚ
-  | 𝑮 φ => .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧)
-  | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧)
+  | 𝑿 φ => if | w | > 0 then ⟦ w ^ 1 ⊨ φ ⟧ else .botₚ
+  | X̅ φ => if | w | > 0 then ⟦ w ^ 1 ⊨ φ ⟧ else .topₚ
+  | 𝑮 φ => .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
+  | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
   | φ 𝑼 ψ =>
-    (⨆ i ∈ | w |, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊔
-      (.botₚ ⊓ (⨆ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧))
+    (⨆ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊔
+      (.botₚ ⊓ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
   | φ 𝑹 ψ =>
-    (⨅ i ∈ | w |, (⟦ w.drop i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊓
-      (.topₚ ⊔ (⨅ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧))
+    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊓
+      (.topₚ ⊔ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
 
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
 
