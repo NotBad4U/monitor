@@ -789,8 +789,9 @@ Following the characterization of #fltl4, we can etablish a correspondance betwe
 #theorem()[
   Let $phi$ be an #fltl4 formula. Then there is an effective procedure constructing an FSM $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$ such that for all $u ∈ Σ^*$ the following holds:
   $
-    delta_4(s,u) = [ u tack.rr phi ]_4
+    delta_4(s,u)_o = [ u tack.rr phi ]_4
   $
+  with $(-)_o$ the projection of the output for $Gamma times S$.
 ]
 
 
