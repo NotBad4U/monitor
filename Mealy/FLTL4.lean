@@ -173,10 +173,10 @@ def sem (w : List α) : φ α → 𝔹₄
   | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧)
   | φ 𝑼 ψ =>
     (⨆ i ∈ | w |, (⟦ w.drop i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊔
-      (.botₚ ⊓ (⨆ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
+      (.botₚ ⊓ (⨆ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧))
   | φ 𝑹 ψ =>
     (⨅ i ∈ | w |, (⟦ w.drop i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w.drop j ⊨ φ ⟧))) ⊓
-      (.topₚ ⊔ (⨅ i ∈ w.length, ⟦ w.drop i ⊨ φ ⟧))
+      (.topₚ ⊔ (⨅ i ∈ | w |, ⟦ w.drop i ⊨ φ ⟧))
 
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
 
