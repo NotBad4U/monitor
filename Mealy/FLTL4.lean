@@ -43,7 +43,7 @@ prefix:100 "𝑭 " => φ.finally
 
 prefix:100 "𝑮 " => φ.globally
 
-notation "⟪ " e " ⟫" => φ.ap e
+notation "⟨ " e " ⟩" => φ.ap e
 
 notation " ⊤ " => φ.true
 
@@ -56,16 +56,16 @@ abbrev φ.impl (a b : φ α) : φ α :=
 infixr:105 " ⟶ " => φ.impl
 
 def exampleNat : φ ℕ :=
-  (𝑮 (⟪ 1 ⟫ 𝑼 ⟪ 2 ⟫)) ⋀ (𝑮 (~ ⟪ 0 ⟫))
+  (𝑮 (⟨ 1 ⟩ 𝑼 ⟨ 2 ⟩)) ⋀ (𝑮 (~ ⟨ 0 ⟩))
 
 def exampleString : φ String :=
-  (𝑮 (⟪ "a" ⟫ 𝑼 ⟪ "b" ⟫)) ⋀ (𝑮 (~ ⟪ "c" ⟫))
+  (𝑮 (⟨ "a" ⟩ 𝑼 ⟨ "b" ⟩)) ⋀ (𝑮 (~ ⟨ "c" ⟩))
 
 -- Put a formula φ into a Negation Normal Form i.e negation on the leaves
 def nnf : φ α → φ α
   | ~ ⊤ => ⊥
   | ~ ⊥ => ⊤
-  | ~ ⟪ x ⟫ => ~ ⟪ x ⟫
+  | ~ ⟨ x ⟩ => ~ ⟨ x ⟩
   | ~ ~ φ => nnf φ
   | ~ (φ ⋁ ψ) => (nnf (~ φ)) ⋀ (nnf (~ ψ))
   | ~ (φ ⋀ ψ) => (nnf (~ φ)) ⋁ (nnf (~ ψ))
@@ -85,13 +85,13 @@ def nnf : φ α → φ α
   | φ 𝑹 ψ => (nnf φ) 𝑹 (nnf ψ)
   | ⊤ => ⊤
   | ⊥ => ⊥
-  | ⟪ x ⟫ => ⟪ x ⟫
+  | ⟨ x ⟩ => ⟨ x ⟩
 
 -- Decidable predicate to check if a formula φ is in Negation Normal Form
 def is_nnf : φ α → Bool
   | ~ ⊤ => false -- ~ ⊤ => ⊥
   | ~ ⊥ => false -- ~ ⊥ => ⊤
-  | ~ ⟪ _ ⟫ => true
+  | ~ ⟨ _ ⟩ => true
   | ~ ~ _ => false
   | ~ (_ ⋁ _) => false
   | ~ (_ ⋀ _) => false
@@ -111,7 +111,7 @@ def is_nnf : φ α → Bool
   | φ 𝑹 ψ => (is_nnf φ) && (is_nnf ψ)
   | ⊤ => true
   | ⊥ => true
-  | ⟪ _ ⟫ => true
+  | ⟨ _ ⟩ => true
 
 -- `nnf` always produces a formula in negation normal form
 omit [DecidableEq α] in -- Recommended by Lean
@@ -133,13 +133,10 @@ lemma compl_lookup (w : List α) (i : ℕ) (x : α) : (lookup w i x)ᶜ = nlooku
 
 syntax :50 (name := memAt) term:51 " ∈ " ident "[" term "]" : term
 
-syntax :50 (name := notMemAt) term:51 " ∉ " ident "[" term "]" : term
-
 macro_rules (kind := memAt)
   | `($x ∈ $w:ident[$i]) => `(lookup $w $i $x)
 
-macro_rules (kind := notMemAt)
-  | `($x ∉ $w:ident[$i]) => `(nlookup $w $i $x)
+syntax :50 (name := notMemAt) term:51 " ∉ " ident "[" term "]" : term
 
 macro_rules (kind := notMemAt)
   | `($x ∉ $w:ident[$i]) => `(nlookup $w $i $x)
@@ -147,17 +144,17 @@ macro_rules (kind := notMemAt)
 -- `| w |` : join / meet of `f i` over the positions `i` of `w`
 syntax :67 (name := card) "| " term " |" : term
 
--- `⨆ i ∈ w, f i` : join of `f i` over the positions `i` of `w`
-syntax :67 (name := supPos) "⨆ " ident " ∈ " term ", " term : term
-
--- ``⨅ i ∈ w, f i` : meet of `f i` over the positions `i` of `w`
-syntax :67 (name := infPos) "⨅ " ident " ∈ " term ", " term : term
-
 macro_rules (kind := card)
   | `(| $w:ident |) => `(List.length $w)
 
+-- `⨆ i ∈ w, f i` : join of `f i` over the positions `i` of `w`
+syntax :67 (name := supPos) "⨆ " ident " ∈ " term ", " term : term
+
 macro_rules (kind := supPos)
   | `(⨆ $i:ident ∈ $w:term, $f) => `((Finset.range $w).sup fun $i => $f)
+
+-- ``⨅ i ∈ w, f i` : meet of `f i` over the positions `i` of `w`
+syntax :67 (name := infPos) "⨅ " ident " ∈ " term ", " term : term
 
 macro_rules (kind := infPos)
   | `(⨅ $i:ident ∈ $w:term, $f) => `((Finset.range $w).inf fun $i => $f)
@@ -165,8 +162,8 @@ macro_rules (kind := infPos)
 def sem (w : List α) : φ α → 𝔹₄
   | ⊤ => .top
   | ⊥ => .bot
-  | ~ ⟪ x ⟫ => x ∉ w[0]
-  | ⟪ x ⟫ => x ∈ w[0]
+  | ~ ⟨ x ⟩ => x ∉ w[0]
+  | ⟨ x ⟩ => x ∈ w[0]
   | ~ φ => (⟦ w ⊨ φ ⟧)ᶜ
   | φ ⋁ ψ => ⟦ w ⊨ φ ⟧ ⊔ ⟦ w ⊨ ψ ⟧
   | φ ⋀ ψ => ⟦ w ⊨ φ ⟧ ⊓ ⟦ w ⊨ ψ ⟧
