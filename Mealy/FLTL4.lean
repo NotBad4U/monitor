@@ -180,10 +180,10 @@ def sem (w : List α) : φ α → 𝔹₄
   | 𝑮 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
   | φ 𝑼 ψ =>
     (⨆ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊔
-      (.botₚ ⊓ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
+      (.botₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
   | φ 𝑹 ψ =>
-    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊓
-      (.topₚ ⊔ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
+    (⨅ i ∈ | w |, (⟦ w ^ i ⊨ φ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ ψ ⟧))) ⊔
+      (.botₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ ψ ⟧))
 
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
 
@@ -201,10 +201,22 @@ lemma and_associativity :
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.assoc_cap ..
 
--- Semantic equivalence between  𝑭𝜑 and true 𝐔 𝜑
+-- Semantic equivalence between 𝑭𝜑 and true 𝐔 𝜑
+@[simp]
 lemma equiv_F (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by sorry
+  -- ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧
+  -- simplify with sem
+  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ .true ⟧))) ⊔ (.botₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ true ⟧))
+  -- simplify with sem again for .true only
+  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ ⊤)) ⊔ (.botₚ ⊓ .top)
+  -- apply join
+  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) ⊔ .botₚ
+  -- commutativity
+  -- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧)
+  -- equality
 
 -- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
+@[simp]
 lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by sorry
 
 @[simp]
