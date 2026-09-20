@@ -176,8 +176,8 @@ def sem (w : List α) : φ α → 𝔹₄
   | φ ⋀ ψ => ⟦ w ⊨ φ ⟧ ⊓ ⟦ w ⊨ ψ ⟧
   | 𝑿 φ => if | w | > 0 then ⟦ w ^ 1 ⊨ φ ⟧ else .botₚ
   | X̅ φ => if | w | > 0 then ⟦ w ^ 1 ⊨ φ ⟧ else .topₚ
-  | 𝑮 φ => .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
-  | 𝑭 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
+  | 𝑭 φ => .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
+  | 𝑮 φ => .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧)
   | φ 𝑼 ψ =>
     (⨆ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊔
       (.botₚ ⊓ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
@@ -200,6 +200,12 @@ lemma and_associativity :
   intro w a b c
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.assoc_cap ..
+
+-- Semantic equivalence between  𝑭𝜑 and true 𝐔 𝜑
+lemma equiv_F (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by sorry
+
+-- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
+lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by sorry
 
 @[simp]
 lemma compl_range_sup (n : ℕ) (f : ℕ → 𝔹₄) :
@@ -238,8 +244,12 @@ lemma sem_impl (w : List α) (a b : φ α) : ⟦ w ⊨ a ⟶ b ⟧ = (⟦ w ⊨ 
 
 -- K i.e. arbitrary Kripke frame : □ (a → b) ⊢ □ a → □ b
 lemma sem_frame (w : List α) (a b : φ α) : ⟦ w ⊨ 𝑮 (a ⟶ b) ⟧ ≤ ⟦ w ⊨ (𝑮 a) ⟶ (𝑮 b) ⟧ := by sorry
+-- .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ (a ⟶ b) ⟧) ≤ ⟦ w ⊨ ~ (𝑮 a) ∨ (𝑮 b) ⟧
+-- .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ (a ⟶ b) ⟧) ≤ ⟦ w ⊨ ~ (.topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ a ⟧)) ⊔ (.topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ b ⟧))
+-- .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ (a ⟶ b) ⟧) ≤ ⟦ w ⊨ .botₚ ⊔ ~ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ a ⟧)) ⊔ (.topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ b ⟧))
+-- .topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ (a ⟶ b) ⟧) ≤ ⟦ w ⊨ .botₚ ⊔ ~ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ a ⟧)) ⊔ (.topₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ b ⟧))
 
--- 4 i.e transitivitt : □p ⊢ □□p
+-- 4 i.e transitivity : □p ⊢ □□p
 lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑮 f ⟧ := by sorry
 
 -- T i.e. reflexivity □p ⊢ p
