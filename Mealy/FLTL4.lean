@@ -371,7 +371,13 @@ lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ �
   lia
 
 -- T i.e. reflexivity □p ⊢ p
-lemma sem_reflexivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by sorry
+lemma sem_reflexivity_G (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by
+  simp only [sem]
+  calc
+    ⊤ₚ ⊓ (⨅ i < |w|, ⟦ w ^ i ⊨ f ⟧)
+        ≤ ⨅ i < |w|, ⟦ w ^ i ⊨ f ⟧       := inf_le_right
+    _   ≤ ⟦ w ^ 0 ⊨ f ⟧                  := Finset.inf_le (Finset.mem_range.mpr hw)
+    _   = ⟦ w ⊨ f ⟧                      := by rw [List.drop_zero]
 
 -- B i.e. symmetry p ⊢ □♢p
 lemma sem_symmetry (w : List α) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry
