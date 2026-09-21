@@ -214,7 +214,6 @@ syntax:75 (name := drop) ident "^" term:76 : term
 macro_rules (kind := drop)
   | `($w:ident ^ $i:term) => `(List.drop $i $w)
 
-
 def sem (w : List α) : φ α → 𝔹₄
   | ⊤ => .top
   | ⊥ => .bot
@@ -234,8 +233,13 @@ def sem (w : List α) : φ α → 𝔹₄
     (⨅ i ∈ | w |, (⟦ w ^ i ⊨ ψ ⟧ ⊔ (⨆ j ∈ i, ⟦ w ^ j ⊨ φ ⟧))) ⊓
       (⊤ₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ φ ⟧))
 
-
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
+
+@[simp]
+lemma sem_not (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ w ⊨ f ⟧)ᶜ := by
+  cases f with
+  | ap x => simp [sem, nlookup]
+  | _ => simp [sem]
 
 @[simp]
 lemma or_associativity :
@@ -257,57 +261,40 @@ lemma inf_top_eq_top (i : ℕ) : (⨅ _j < i, 𝔹₄.top) = 𝔹₄.top := Fins
 @[simp]
 lemma sup_bot_eq_bot (i : ℕ) : (⨆ _j < i, 𝔹₄.bot) = 𝔹₄.bot := Finset.sup_bot _
 
-
--- Semantic equivalence between 𝑭𝜑 and true 𝐔 𝜑
--- Sketch of the proof:
--- ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧
--- simplify with sem
--- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ (⨅ j ∈ i, ⟦ w ^ j ⊨ .true ⟧))) ⊔ (.botₚ ⊓ (⨅ i ∈ | w |, ⟦ w ^ i ⊨ true ⟧))
--- simplify with sem again for .true only
--- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, (⟦ w ^ i ⊨ f ⟧ ⊓ ⊤)) ⊔ (.botₚ ⊓ .top)
--- apply join
--- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) ⊔ .botₚ
--- commutativity
--- .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧) = .botₚ ⊔ (⨆ i ∈ | w |, ⟦ w ^ i ⊨ f ⟧)
--- equality
-lemma eq_sem_F_with_U (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by
-   simp only [sem]
-   simp only [inf_top_eq_top]
-   simp [sup_comm ]
-
--- Semantic equivalence between 𝑮𝜑 and false 𝑹 ϕ
-lemma eq_sem_G_with_R (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ .false 𝑹 f ⟧ := by
-  simp only [sem]
-  simp [inf_comm]
-
-
-
--- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
-lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by sorry
-
 @[simp]
 lemma compl_range_sup (n : ℕ) (f : ℕ → 𝔹₄) :
-    ((Finset.range n).sup f)ᶜ = (Finset.range n).inf (fun i => (f i)ᶜ) := by
+    (⨆ i ∈ n, f i)ᶜ = (⨅ i ∈ n, (f i)ᶜ) := by
   induction n with
   | zero => rfl
   | succ n ih => simp [Finset.range_add_one, ih]
 
 @[simp]
 lemma compl_range_inf (n : ℕ) (f : ℕ → 𝔹₄) :
-    ((Finset.range n).inf f)ᶜ = (Finset.range n).sup (fun i => (f i)ᶜ) := by
+    (⨅ i ∈ n, f i)ᶜ = (⨆ i ∈ n, (f i)ᶜ) := by
   induction n with
   | zero => rfl
   | succ n ih => simp [Finset.range_add_one, ih]
 
+-- Semantic equivalence between 𝑭𝜑 and true 𝐔 𝜑
+lemma eq_sem_F_with_U (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by
+   simp only [sem]
+   simp only [inf_top_eq_top]
+   simp [sup_comm]
+
+-- Semantic equivalence between 𝑮𝜑 and false 𝑹 ϕ
+lemma eq_sem_G_with_R (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ .false 𝑹 f ⟧ := by
+  simp only [sem]
+  simp [inf_comm]
+
+-- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
+lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by
+  simp only [sem]
+  simp only [sem_not]
+  simp [compl_range_sup]
+
 @[simp]
 lemma compl_ite₄ (c : Prop) [Decidable c] (a b : 𝔹₄) :
     (if c then a else b)ᶜ = if c then aᶜ else bᶜ := by split <;> rfl
-
-@[simp]
-lemma sem_not (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ w ⊨ f ⟧)ᶜ := by
-  cases f with
-  | ap x => simp [sem, nlookup]
-  | _ => simp [sem]
 
 theorem sem_nnf_equiv (w : List α) (f : φ α) : ⟦ w ⊨ nnf f ⟧ = ⟦ w ⊨ f ⟧ := by
   induction f using nnf.induct generalizing w <;> simp_all [nnf, sem, nlookup]
@@ -337,7 +324,7 @@ lemma inf_join_le_join_sup_inf [DistribLattice A] [BoundedOrder A] (n : ℕ) (f 
 -- K i.e. arbitrary Kripke frame : □ (a → b) ⊢ □ a → □ b
 lemma sem_frame (w : List α) (a b : φ α) : ⟦ w ⊨ 𝑮 (a ⟶ b) ⟧ ≤ ⟦ w ⊨ (𝑮 a) ⟶ (𝑮 b) ⟧ := by
   simp only [sem, sem_not]
-  set n := w.length
+  set n := | w |
   set A := fun i => ⟦ w ^ i ⊨ a ⟧ with hA
   set B := fun i => ⟦ w ^ i ⊨ b ⟧ with hB
   show ⊤ₚ ⊓ (⨅ i < n, ((A i)ᶜ ⊔ B i))
@@ -364,7 +351,7 @@ lemma split_const_sup_right_left (m : ℕ) (g : ℕ → 𝔹₄) (c : 𝔹₄) :
 -- 4 i.e transitivitt : □p ⊢ □□p
 lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑮 f ⟧ := by
   simp only [sem]
-  set n := w.length
+  set n := | w |
   rw [split_const_left_inf]
   refine le_inf inf_le_left (le_inf (le_trans inf_le_left Finset.le_inf_const) ?_)
   refine Finset.le_inf fun i hi => Finset.le_inf fun j hj => ?_
