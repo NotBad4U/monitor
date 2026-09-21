@@ -259,7 +259,17 @@ lemma and_associativity :
 lemma inf_top_eq_top (i : ℕ) : (⨅ _j < i, 𝔹₄.top) = 𝔹₄.top := Finset.inf_top _
 
 @[simp]
+lemma sup_top_eq_top (i : ℕ) (hi : 0 < i) : (⨆ _j < i, 𝔹₄.top) = 𝔹₄.top := by
+  apply Finset.sup_const
+  exact ⟨0, Finset.mem_range.mpr hi⟩
+
+@[simp]
 lemma sup_bot_eq_bot (i : ℕ) : (⨆ _j < i, 𝔹₄.bot) = 𝔹₄.bot := Finset.sup_bot _
+
+@[simp]
+lemma inf_bot_eq_bot (i : ℕ) (hi : 0 < i) : (⨅ _j < i, 𝔹₄.bot) = 𝔹₄.bot := by
+  apply Finset.inf_const
+  exact ⟨0, Finset.mem_range.mpr hi⟩
 
 @[simp]
 lemma compl_range_sup (n : ℕ) (f : ℕ → 𝔹₄) :
@@ -348,7 +358,7 @@ lemma split_const_sup_right_left (m : ℕ) (g : ℕ → 𝔹₄) (c : 𝔹₄) :
   rw [← Finset.sup_sup]
   rfl
 
--- 4 i.e transitivitt : □p ⊢ □□p
+-- 4 i.e transitivity : □p ⊢ □□p
 lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑮 f ⟧ := by
   simp only [sem]
   set n := | w |
@@ -361,7 +371,21 @@ lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ �
   lia
 
 -- T i.e. reflexivity □p ⊢ p
-lemma sem_reflexivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by sorry
+lemma sem_reflexivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by
+  simp [sem]
+  set n := | w |
+  induction f
+  . simp [sem]
+  . induction n with
+    | zero => simp [sem];sorry -- FALSE HERE
+    | succ n ih => sorry
+  . simp [sem, lookup]
+    induction n with
+    | zero => simp; sorry
+    | succ n ih => sorry
+  . sorry
+  . simp [sem]; exact
+  sorry
 
 -- B i.e. symmetry p ⊢ □♢p
 lemma sem_symmetry (w : List α) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry
