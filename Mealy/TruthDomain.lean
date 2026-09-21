@@ -323,6 +323,9 @@ lemma compl_topₚ : (⊤ₚ)ᶜ = ⊥ₚ := rfl
 @[simp]
 lemma compl_top₄ : (⊤ : 𝔹₄)ᶜ = ⊥ := rfl
 
+lemma compl_le_compl₄ {a b : 𝔹₄} (h : a ≤ b) : bᶜ ≤ aᶜ := by
+  cases a <;> cases b <;> trivial
+
 -- Join / meet of the two "presumably" values (the other cases are covered by Mathlib)
 @[simp]
 lemma botₚ_sup_topₚ : ⊥ₚ ⊔ ⊤ₚ = ⊤ₚ := rfl

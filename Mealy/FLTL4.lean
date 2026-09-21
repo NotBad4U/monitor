@@ -305,6 +305,12 @@ lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭
   simp only [sem_not_eq_compl_sem]
   simp [compl_range_sup]
 
+-- Semantic equivalence between 𝑭𝜑 and ¬𝑮¬𝜑
+lemma equiv_F (w : List α) (f : φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ ~ 𝑮 (~ f) ⟧ := by
+  simp only [sem]
+  simp only [sem_not_eq_compl_sem]
+  simp [compl_range_inf]
+
 @[simp]
 lemma compl_ite₄ (c : Prop) [Decidable c] (a b : 𝔹₄) :
     (if c then a else b)ᶜ = if c then aᶜ else bᶜ := by split <;> rfl
@@ -426,16 +432,39 @@ lemma sem_F_drop_le_F (w : List α) (f : φ α) : ⟦ w ^ 1 ⊨ 𝑭 f ⟧ ≤ �
 theorem not_sem_symmetry : ¬ ∀ (w : List ℕ) (f : φ ℕ), ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ :=
   fun h => h [0, 1] ⟨ 0 ⟩
 
--- D i.e. seriality ◻p ⊢ ◊p : holds exactly on nonempty words.
--- On `[]` it fails, since ⟦ [] ⊨ 𝑮 f ⟧ = ⊤ₚ while ⟦ [] ⊨ 𝑭 f ⟧ = ⊥ₚ.
-theorem sem_serial (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑭 f ⟧ := by
-  refine le_trans (sem_reflexivity_G w hw f) ?_
+-- T dual i.e. reflexivity p ⊢ ◊p
+-- NOTE: the proof can be also done with using equiv_F
+lemma sem_reflexivity_F (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑭 f ⟧ := by
   simp only [sem]
   refine le_sup_of_le_right ?_
   have hz : ⟦ w ⊨ f ⟧ = ⟦ w ^ 0 ⊨ f ⟧ := by rw [List.drop_zero]
   rw [hz]
   have w_nonempty : 0 ∈ (Finset.range w.length) := Iff.mpr Finset.mem_range hw
   exact Finset.le_sup (f := fun j => ⟦ w^j ⊨ f ⟧) w_nonempty
+
+-- The T property (□p ⊢ p) and its dual (p ⊢ ♢p) principle can be proven from equiv_F and equiv_G
+example (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑭 f ⟧ := by
+  have h := sem_reflexivity_G w hw (~ f)
+  rw [sem_not_eq_compl_sem] at h
+  have h2 := compl_le_compl₄ h
+  rw [compl_compl₄] at h2
+  rw [equiv_F, sem_not_eq_compl_sem]
+  exact h2
+
+example (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by
+  have h := sem_reflexivity_F w hw (~ f)
+  rw [sem_not_eq_compl_sem] at h
+  have h2 := compl_le_compl₄ h
+  rw [compl_compl₄] at h2
+  rw [equiv_G, sem_not_eq_compl_sem]
+  exact h2
+
+-- D i.e. seriality ◻p ⊢ ◊p : holds exactly on nonempty words.
+-- On `[]` it fails, since ⟦ [] ⊨ 𝑮 f ⟧ = ⊤ₚ while ⟦ [] ⊨ 𝑭 f ⟧ = ⊥ₚ.
+theorem sem_serial (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑭 f ⟧ := by
+  refine le_trans (sem_reflexivity_G w hw f) ?_
+  simp only [sem]
+  exact sem_reflexivity_F w hw f
 
 -- 5 i.e euclideanity ♢p ⊢ ◻◊p : does NOT hold
 -- Witness: w = ["a"] and f = ⟨"a"⟩, where ⟦ w ⊨ 𝑭 f ⟧ = ⊤ but ⟦ w ⊨ 𝑮 𝑭 f ⟧ = ⊤ₚ.
