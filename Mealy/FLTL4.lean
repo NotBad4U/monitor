@@ -4,6 +4,9 @@ import LeanSearchClient
 
 open TruthDomain.TruthDomain_𝔹₄
 
+-- uncomment for dev mode only
+set_option pp.parens true
+
 namespace FLTL₄
 
 variable (α : Type u) [DecidableEq α]
@@ -332,7 +335,7 @@ lemma inf_join_le_join_sup_inf [DistribLattice A] [BoundedOrder A] (n : ℕ) (f 
   exact Finset.inf_mono_fun (fun _i hi => sup_le_sup_right (Finset.le_sup (f := f) hi) _)
 
 -- K i.e. arbitrary Kripke frame : □ (a → b) ⊢ □ a → □ b
-lemma sem_frame (w : List α) (a b : φ α) : ⟦ w ⊨ 𝑮 (a ⟶ b) ⟧ ≤ ⟦ w ⊨ (𝑮 a) ⟶ (𝑮 b) ⟧ := by
+theorem sem_frame (w : List α) (a b : φ α) : ⟦ w ⊨ 𝑮 (a ⟶ b) ⟧ ≤ ⟦ w ⊨ (𝑮 a) ⟶ (𝑮 b) ⟧ := by
   simp only [sem, sem_not_eq_compl_sem]
   set n := | w |
   set A := fun i => ⟦ w ^ i ⊨ a ⟧ with hA
@@ -359,7 +362,7 @@ lemma split_const_sup_right_left (m : ℕ) (g : ℕ → 𝔹₄) (c : 𝔹₄) :
   rfl
 
 -- 4 i.e transitivity : □p ⊢ □□p
-lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑮 f ⟧ := by
+theorem sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑮 f ⟧ := by
   simp only [sem]
   set n := | w |
   rw [split_const_left_inf]
@@ -371,16 +374,89 @@ lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ �
   lia
 
 -- T i.e. reflexivity □p ⊢ p
-lemma sem_reflexivity_G (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by
+theorem sem_reflexivity_G (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by
   simp only [sem]
   calc
     ⊤ₚ ⊓ (⨅ i < |w|, ⟦ w ^ i ⊨ f ⟧)
-        ≤ ⨅ i < |w|, ⟦ w ^ i ⊨ f ⟧       := inf_le_right
+        ≤ ⨅ i < |w|, ⟦ w^ i ⊨ f ⟧       := inf_le_right
     _   ≤ ⟦ w ^ 0 ⊨ f ⟧                  := Finset.inf_le (Finset.mem_range.mpr hw)
     _   = ⟦ w ⊨ f ⟧                      := by rw [List.drop_zero]
 
--- B i.e. symmetry p ⊢ □♢p
-lemma sem_symmetry (w : List α) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry
+-- 𝑮 p will never be greather than ⊤ by design of sem
+lemma sem_G_le_topₚ (w : List α) (g : φ α) : ⟦ w ⊨ 𝑮 g ⟧ ≤ ⊤ₚ := inf_le_left
 
--- 5 i.e euclideanity  ♢p → ◻◊p
-lemma sem_euclideanity (w : List α) (f : φ α) : ⟦ w ⊨ 𝑭 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry
+-- 𝑭 p will always be greather than ⊥ₚ by design of sem
+lemma sem_F_le_botₚ (w : List α) (g : φ α) : ⊥ₚ ≤ ⟦ w ⊨ 𝑭 g ⟧ := le_sup_left
+
+-- 𝑮 p will never be ⊤ by design of sem
+lemma sem_G_neq_top (w : List α) (g : φ α) : ⟦ w ⊨ 𝑮 g ⟧ ≠ 𝔹₄.top := by
+  simp only [sem]
+  intro h
+  rw [top_eq₄, inf_eq_top_iff] at h
+  exact 𝔹₄.noConfusion h.1
+
+
+-- 𝑭 p will never be ⊥ by design of sem
+lemma sem_F_neq_bot (w : List α) (g : φ α) : ⊥ₚ ≤ ⟦ w ⊨ 𝑭 g ⟧ := le_sup_left
+
+-- 𝑮 is monotone along suffixes i.e. 𝑮 truth value can only get better
+lemma sem_G_le_G_drop (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ^ 1 ⊨ 𝑮 f ⟧ := by
+  simp only [sem]
+  refine le_inf inf_le_left (le_trans inf_le_right (Finset.le_inf fun i hi => ?_))
+  rw [List.drop_drop]
+  refine Finset.inf_le ?_
+  simp only [Finset.mem_range, List.length_drop] at *
+  lia
+
+--  𝑭 is antitone along suffixes i.e. 𝑭 truth value can only get worse as time passes;
+lemma sem_F_drop_le_F (w : List α) (f : φ α) : ⟦ w ^ 1 ⊨ 𝑭 f ⟧ ≤ ⟦ w ⊨ 𝑭 f ⟧ := by
+  simp only [sem]
+  refine sup_le_sup_left (Finset.sup_le fun i hi => ?_) _
+  rw [List.drop_drop]
+  refine Finset.le_sup (f := fun j => ⟦ w^j ⊨ f ⟧) ?_
+  simp only [Finset.mem_range, List.length_drop] at *
+  lia
+
+
+#reduce ⟦ [0,1] ⊨ ⟨ 0 ⟩ ⟧
+#reduce ⟦ [0,1] ⊨ 𝑮 𝑭 ⟨ 0 ⟩ ⟧
+
+-- B i.e. symmetry p ⊢ □♢p : does NOT hold
+-- Witness: w = [0, 1] and f = ⟨0⟩, where ⟦ w ⊨ f ⟧ = ⊤ but ⟦ w ⊨ 𝑮 𝑭 f ⟧ = ⊥ₚ.
+theorem not_sem_symmetry : ¬ ∀ (w : List ℕ) (f : φ ℕ), ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ :=
+  fun h => h [0, 1] ⟨ 0 ⟩
+
+-- D i.e. seriality ◻p ⊢ ◊p : holds exactly on nonempty words.
+-- On `[]` it fails, since ⟦ [] ⊨ 𝑮 f ⟧ = ⊤ₚ while ⟦ [] ⊨ 𝑭 f ⟧ = ⊥ₚ.
+theorem sem_serial (w : List α) (hw : 0 < | w |) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑭 f ⟧ := by
+  refine le_trans (sem_reflexivity_G w hw f) ?_
+  simp only [sem]
+  refine le_sup_of_le_right ?_
+  have hz : ⟦ w ⊨ f ⟧ = ⟦ w ^ 0 ⊨ f ⟧ := by rw [List.drop_zero]
+  rw [hz]
+  have w_nonempty : 0 ∈ (Finset.range w.length) := Iff.mpr Finset.mem_range hw
+  exact Finset.le_sup (f := fun j => ⟦ w^j ⊨ f ⟧) w_nonempty
+
+-- 5 i.e euclideanity ♢p ⊢ ◻◊p : does NOT hold
+-- Witness: w = ["a"] and f = ⟨"a"⟩, where ⟦ w ⊨ 𝑭 f ⟧ = ⊤ but ⟦ w ⊨ 𝑮 𝑭 f ⟧ = ⊤ₚ.
+lemma not_sem_euclideanity : ¬ ∀ (w : List String) (f : φ String), ⟦ w ⊨ 𝑭 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧
+  := fun h => h ["a"] ⟨ "a" ⟩
+
+-- Corrolary from Modal properties
+
+-- 𝑮 is monotone in its argument, position by position
+lemma sem_G_mono (w : List α) (a b : φ α)
+    (h : ∀ i, i < | w | → ⟦ w ^ i ⊨ a ⟧ ≤ ⟦ w ^ i ⊨ b ⟧) :
+    ⟦ w ⊨ 𝑮 a ⟧ ≤ ⟦ w ⊨ 𝑮 b ⟧ := by
+  simp only [sem]
+  exact inf_le_inf_left ⊤ₚ (Finset.inf_mono_fun fun i hi => h i (Finset.mem_range.mp hi))
+
+-- □p ⊢ □□p ⊢ □♢p holds because
+lemma sem_G_le_G_F (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ :=
+  le_trans (sem_transitivity_G w f)  -- □p ⊢ □□p
+    (sem_G_mono w (𝑮 f) (𝑭 f) fun i hi => -- □p ⊢ □q if p < q
+      sem_serial (w ^ i) (by simp only [List.length_drop]; lia) f) -- □□p ⊢ □♢p
+
+-- N i.e. Necessitation Rule p ⊢ □p
+theorem sem_symmetry_of_le_G (w : List α) (f : φ α) (h : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 f ⟧) :
+    ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := le_trans h (sem_G_le_G_F w f)

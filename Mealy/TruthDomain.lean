@@ -163,6 +163,10 @@ deriving instance BEq, Hashable for 𝔹₄
 notation "⊥ₚ" => 𝔹₄.botₚ
 notation "⊤ₚ" => 𝔹₄.topₚ
 
+-- Lets `#eval` print truth values as `⊥ / ⊥ₚ / ⊤ₚ / ⊤` instead of full constructor names
+instance : Repr 𝔹₄ := ⟨fun x _ => match x with
+  | .bot => "⊥" | .botₚ => "⊥ₚ" | .topₚ => "⊤ₚ" | .top => "⊤"⟩
+
 -- ------------------------------------------------------------------------------------
 -- Pre order for 𝔹₄
 -- ------------------------------------------------------------------------------------
