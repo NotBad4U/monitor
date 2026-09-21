@@ -236,7 +236,7 @@ def sem (w : List α) : φ α → 𝔹₄
 -- https://lean-lang.org/doc/reference/4.33.0/Tactic-Proofs/Tactic-Reference/
 
 @[simp]
-lemma sem_not (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ w ⊨ f ⟧)ᶜ := by
+lemma sem_not_eq_compl_sem (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ w ⊨ f ⟧)ᶜ := by
   cases f with
   | ap x => simp [sem, nlookup]
   | _ => simp [sem]
@@ -289,7 +289,7 @@ lemma eq_sem_G_with_R (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w �
 -- Semantic equivalence between 𝑮𝜑 and ¬𝑭¬𝜑
 lemma equiv_G (w: List α ) (f: φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ ~ 𝑭 (~ f) ⟧ := by
   simp only [sem]
-  simp only [sem_not]
+  simp only [sem_not_eq_compl_sem]
   simp [compl_range_sup]
 
 @[simp]
@@ -323,7 +323,7 @@ lemma inf_join_le_join_sup_inf [DistribLattice A] [BoundedOrder A] (n : ℕ) (f 
 
 -- K i.e. arbitrary Kripke frame : □ (a → b) ⊢ □ a → □ b
 lemma sem_frame (w : List α) (a b : φ α) : ⟦ w ⊨ 𝑮 (a ⟶ b) ⟧ ≤ ⟦ w ⊨ (𝑮 a) ⟶ (𝑮 b) ⟧ := by
-  simp only [sem, sem_not]
+  simp only [sem, sem_not_eq_compl_sem]
   set n := | w |
   set A := fun i => ⟦ w ^ i ⊨ a ⟧ with hA
   set B := fun i => ⟦ w ^ i ⊨ b ⟧ with hB
