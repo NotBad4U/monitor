@@ -371,21 +371,7 @@ lemma sem_transitivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ �
   lia
 
 -- T i.e. reflexivity □p ⊢ p
-lemma sem_reflexivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by
-  simp [sem]
-  set n := | w |
-  induction f
-  . simp [sem]
-  . induction n with
-    | zero => simp [sem];sorry -- FALSE HERE
-    | succ n ih => sorry
-  . simp [sem, lookup]
-    induction n with
-    | zero => simp; sorry
-    | succ n ih => sorry
-  . sorry
-  . simp [sem]; exact
-  sorry
+lemma sem_reflexivity_G (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ ≤ ⟦ w ⊨ f ⟧ := by sorry
 
 -- B i.e. symmetry p ⊢ □♢p
 lemma sem_symmetry (w : List α) (f : φ α) : ⟦ w ⊨ f ⟧ ≤ ⟦ w ⊨ 𝑮 𝑭 f ⟧ := by sorry
