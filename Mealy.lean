@@ -1,3 +1,8 @@
--- This module serves as the root of the `Mealy` library.
--- Import modules here that should be built as part of the library.
-import Mealy.TruthDomain
+import Mealy.TruthDomain.Core
+import Mealy.TruthDomain.B2
+import Mealy.TruthDomain.B4
+import Mealy.FLTL4.Definition
+import Mealy.FLTL4.NNF
+import Mealy.FLTL4.Semantic.Notations
+import Mealy.FLTL4.Semantic.Interpreter
+import Mealy.FLTL4.Semantic.Properties
