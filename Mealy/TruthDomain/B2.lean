@@ -7,6 +7,7 @@ import Mealy.TruthDomain.Core
 inductive 𝔹₂ where
   | bot
   | top
+
 deriving instance BEq, Hashable for 𝔹₂
 
 -- ------------------------------------------------------------------------------------

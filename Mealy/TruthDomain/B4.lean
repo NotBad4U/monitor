@@ -9,15 +9,22 @@ inductive 𝔹₄ where
   | botₚ
   | topₚ
   | top
+
 deriving instance BEq, Hashable for 𝔹₄
 
 -- Notation for the two "presumably" values
 notation "⊥ₚ" => 𝔹₄.botₚ
+
 notation "⊤ₚ" => 𝔹₄.topₚ
 
 -- Lets `#eval` print truth values as `⊥ / ⊥ₚ / ⊤ₚ / ⊤` instead of full constructor names
-instance : Repr 𝔹₄ := ⟨fun x _ => match x with
-  | .bot => "⊥" | .botₚ => "⊥ₚ" | .topₚ => "⊤ₚ" | .top => "⊤"⟩
+instance : Repr 𝔹₄ :=
+  ⟨fun x _ =>
+    match x with
+    | .bot => "⊥"
+    | .botₚ => "⊥ₚ"
+    | .topₚ => "⊤ₚ"
+    | .top => "⊤"⟩
 
 -- ------------------------------------------------------------------------------------
 -- Pre order for 𝔹₄
@@ -124,10 +131,10 @@ instance BooleanLattice_𝔹₄ : BooleanLattice 𝔹₄ where
   compl := not_𝔹₄
 
 -- 𝔹₄ is not a Boolean algebra: `botₚ ⊓ botₚᶜ = botₚ ≠ ⊥` and `botₚ ⊔ botₚᶜ = topₚ ≠ ⊤`.
-lemma not_inf_compl_eq_bot₄ : ¬ ∀ a : 𝔹₄, a ⊓ aᶜ = ⊥ := by
+lemma not_inf_compl_eq_bot₄ : ¬∀ a : 𝔹₄, a ⊓ aᶜ = ⊥ := by
   intro h; cases h ⊥ₚ
 
-lemma not_sup_compl_eq_top₄ : ¬ ∀ a : 𝔹₄, a ⊔ aᶜ = ⊤ := by
+lemma not_sup_compl_eq_top₄ : ¬∀ a : 𝔹₄, a ⊔ aᶜ = ⊤ := by
   intro h; cases h ⊥ₚ
 
 instance BooleanLatticeProperties_𝔹₄ : BooleanLatticeProperties 𝔹₄ where
@@ -160,45 +167,54 @@ lemma compl_sup₄ (a b : 𝔹₄) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ := by cases a 
 lemma compl_inf₄ (a b : 𝔹₄) : (a ⊓ b)ᶜ = aᶜ ⊔ bᶜ := by cases a <;> cases b <;> rfl
 
 @[simp]
-lemma bot_eq₄ : 𝔹₄.bot = ⊥ := rfl
+lemma bot_eq₄ : 𝔹₄.bot = ⊥ :=
+  rfl
 
 @[simp]
-lemma top_eq₄ : 𝔹₄.top = ⊤ := rfl
+lemma top_eq₄ : 𝔹₄.top = ⊤ :=
+  rfl
 
 @[simp]
-lemma compl_bot₄ : (⊥ : 𝔹₄)ᶜ = ⊤ := rfl
+lemma compl_bot₄ : (⊥ : 𝔹₄)ᶜ = ⊤ :=
+  rfl
 
 @[simp]
-lemma compl_botₚ : (⊥ₚ)ᶜ = ⊤ₚ := rfl
+lemma compl_botₚ : (⊥ₚ)ᶜ = ⊤ₚ :=
+  rfl
 
 @[simp]
-lemma compl_topₚ : (⊤ₚ)ᶜ = ⊥ₚ := rfl
+lemma compl_topₚ : (⊤ₚ)ᶜ = ⊥ₚ :=
+  rfl
 
 @[simp]
-lemma compl_top₄ : (⊤ : 𝔹₄)ᶜ = ⊥ := rfl
+lemma compl_top₄ : (⊤ : 𝔹₄)ᶜ = ⊥ :=
+  rfl
 
-lemma compl_le_compl₄ {a b : 𝔹₄} (h : a ≤ b) : bᶜ ≤ aᶜ := by
-  cases a <;> cases b <;> trivial
+lemma compl_le_compl₄ {a b : 𝔹₄} (h : a ≤ b) : bᶜ ≤ aᶜ := by cases a <;> cases b <;> trivial
 
 -- Join / meet of the two "presumably" values (the other cases are covered by Mathlib)
 @[simp]
-lemma botₚ_sup_topₚ : ⊥ₚ ⊔ ⊤ₚ = ⊤ₚ := rfl
+lemma botₚ_sup_topₚ : ⊥ₚ ⊔ ⊤ₚ = ⊤ₚ :=
+  rfl
 
 @[simp]
-lemma topₚ_sup_botₚ : ⊤ₚ ⊔ ⊥ₚ = ⊤ₚ := rfl
+lemma topₚ_sup_botₚ : ⊤ₚ ⊔ ⊥ₚ = ⊤ₚ :=
+  rfl
 
 @[simp]
-lemma botₚ_inf_topₚ : ⊥ₚ ⊓ ⊤ₚ = ⊥ₚ := rfl
+lemma botₚ_inf_topₚ : ⊥ₚ ⊓ ⊤ₚ = ⊥ₚ :=
+  rfl
 
 @[simp]
-lemma topₚ_inf_botₚ : ⊤ₚ ⊓ ⊥ₚ = ⊥ₚ := rfl
+lemma topₚ_inf_botₚ : ⊤ₚ ⊓ ⊥ₚ = ⊥ₚ :=
+  rfl
 
 -- 𝔹₄ is a DeMorgan Algebra:
 
 -- https://ncatlab.org/nlab/show/De+Morgan+algebra
 class DeMorganAlgebra (A : Type) extends DistribLattice A, BoundedOrder A, Compl A where
   compl_compl : ∀ a : A, aᶜᶜ = a
-  compl_sup   : ∀ a b : A, (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ
+  compl_sup : ∀ a b : A, (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ
 
 instance DeMorganAlgebra_𝔹₄ : DeMorganAlgebra 𝔹₄ where
   __ := BooleanLattice_𝔹₄
@@ -213,12 +229,14 @@ instance DeMorganAlgebra_𝔹₄ : DeMorganAlgebra 𝔹₄ where
 -- ------------------------------------------------------------------------------------
 
 -- Semantic Kleene implication
-def impl_𝔹₄ (a b : 𝔹₄) : 𝔹₄ := aᶜ ⊔ b
+def impl_𝔹₄ (a b : 𝔹₄) : 𝔹₄ :=
+  aᶜ ⊔ b
 
 infixr:60 " ⇒ " => impl_𝔹₄
 
 -- Not simp: unfold on demand with `simp [impl_def₄]`, otherwise it hides the lemmas below.
-lemma impl_def₄ (a b : 𝔹₄) : (a ⇒ b) = aᶜ ⊔ b := rfl
+lemma impl_def₄ (a b : 𝔹₄) : (a ⇒ b) = aᶜ ⊔ b :=
+  rfl
 
 @[simp]
 lemma bot_impl₄ (a : 𝔹₄) : (⊥ ⇒ a) = ⊤ := by cases a <;> rfl
@@ -233,7 +251,7 @@ lemma top_impl₄ (a : 𝔹₄) : (⊤ ⇒ a) = a := by cases a <;> rfl
 lemma impl_contra₄ (a b : 𝔹₄) : (a ⇒ b) = (bᶜ ⇒ aᶜ) := by cases a <;> cases b <;> rfl
 
 -- Like the Boolean laws above, `a ⇒ a = ⊤` fails: `botₚ ⇒ botₚ = topₚ`.
-lemma not_impl_self₄ : ¬ ∀ a : 𝔹₄, (a ⇒ a) = ⊤ := by
+lemma not_impl_self₄ : ¬∀ a : 𝔹₄, (a ⇒ a) = ⊤ := by
   intro h; cases h ⊥ₚ
 
 -- `a ⇒ a = ⊤` holds exactly on the definite values ⊥ and ⊤ ...
@@ -246,5 +264,4 @@ lemma impl_self_eq_top₄ (a : 𝔹₄) : (a ⇒ a) = ⊤ ↔ a = ⊥ ∨ a = �
   · exact iff_of_true rfl (Or.inr rfl)
 
 @[simp]
-lemma topₚ_le_impl_self₄ (a : 𝔹₄) : ⊤ₚ ≤ (a ⇒ a) := by
-  cases a <;> trivial
+lemma topₚ_le_impl_self₄ (a : 𝔹₄) : ⊤ₚ ≤ (a ⇒ a) := by cases a <;> trivial

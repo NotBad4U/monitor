@@ -1,12 +1,10 @@
 -- uncomment for dev mode only
 set_option pp.parens true
-
 variable (α : Type u) [DecidableEq α]
 
 /--
   FLTL algebraic data type
 -/
-
 inductive φ : Type (u + 1) where
   | true : φ
   | false : φ
@@ -25,7 +23,6 @@ inductive φ : Type (u + 1) where
 /--
   Syntax annotations
 -/
-
 prefix:60 "~ " => φ.not
 
 infixr:130 " ⋀ " => φ.and
@@ -51,9 +48,8 @@ notation:130 a " ⟶ " b => (~ a) ⋁ b
 /--
   Some basic examples
 -/
-
 def exampleString : φ String :=
-  (𝑮 (⟨ "a" ⟩ 𝑼 ⟨ "b" ⟩)) ⋀ (𝑮 (~ ⟨ "c" ⟩))
+  (𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩))
 
 def exampleNatural : φ Nat :=
-  (𝑮 (⟨ 1 ⟩ 𝑼 ⟨ 2 ⟩)) ⋀ (𝑮 (~ ⟨ 3 ⟩))
+  (𝑮 (⟨1⟩ 𝑼 ⟨2⟩)) ⋀ (𝑮 (~ ⟨3⟩))
