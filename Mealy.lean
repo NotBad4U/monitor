@@ -4,3 +4,5 @@ import Mealy.TruthDomain.B4
 import Mealy.Logic.Syntax
 import Mealy.Logic.Semantic.Denotation
 import Mealy.Logic.Semantic.Properties
+import Mealy.Automata.Mealy
+import Mealy.Automata.PolyMealy
