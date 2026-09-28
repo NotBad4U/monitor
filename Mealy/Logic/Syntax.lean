@@ -48,8 +48,6 @@ notation:130 a " ⟶ " b => (~ a) ⋁ b
 /--
   Some basic examples
 -/
-def exampleString : φ String :=
-  (𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩))
+private def exampleString : φ String := (𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩))
 
-def exampleNatural : φ Nat :=
-  (𝑮 (⟨1⟩ 𝑼 ⟨2⟩)) ⋀ (𝑮 (~ ⟨3⟩))
+private def exampleNatural : φ Nat := (𝑮 (⟨1⟩ 𝑼 ⟨2⟩)) ⋀ (𝑮 (~ ⟨3⟩))
