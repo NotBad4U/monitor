@@ -1346,10 +1346,6 @@ Each layer contributes one thing and nothing else:
 
 = Timed RV-LTL <sec-timed-rvttl>
 
-== Metric RV-LTL
-
-#let mfltl4 = `MFLTL₄`
-
 #definition([Timed word], label: <def:timed-word>)[
   A _timed word_ over $Σ$ is a sequence
   $
@@ -1362,25 +1358,24 @@ Each layer contributes one thing and nothing else:
   $rho$; in particular $rho^1 = rho$.
 ]
 
-#definition([Syntax of Metric formulae], label: <def:metric-fltl4-syntax>)[
+== Metric RV-LTL
+
+#let mfltl4 = `MFLTL₄`
+
+The #mfltl4 is an extension of #fltl4 in which temporal operators are replaced by time-constrained versions like until, next operators.
+It is a linear-time logic that assumes both the interleaving and fictitious-clock abstractions.
+It is defined over a point-based weakly monotonic integer-time semantics.
+
+#definition([Syntax of #mfltl4], label: <def:metric-fltl4-syntax>)[
   Let $Σ = 2^bold("AP")$ be the finite alphabet built over a finite set of atomic
   propositions $bold("AP")$, with $p ∈ bold("AP")$ an atomic proposition. Let
   $overline(RR)_(>= 0) = RR_(>= 0) ∪ {∞}$ be the extended non-negative reals, and let
-  $a ∈ RR_(>= 0)$ and $b ∈ overline(RR)_(>= 0)$ with $a <= b$ be the bounds of a time
-  interval $I = [a, b]$, read as $[a, ∞)$ when $b = ∞$. The set of #mfltl4 formulae is
-  inductively defined by the following grammar:
+  $a ∈ RR_(>= 0)$ and $b ∈ overline(RR)_(>= 0)$ with $a <= b$ be the bounds of a time interval $I = [a, b]$.
+  The set of #mfltl4 formulae is inductively defined by the following grammar:
   $
     φ, ψ ::= top | bot | p | ¬ φ | φ and ψ | φ until_I ψ | bold(X)_I φ | bold(overline(X))_I φ
   $
   We denote the subscript $-_(I)$, with $I = [a, b]$, when it is not necessary to specify the endpoints $a$ and $b$.
-]
-
-#remark[
-  The remaining operators are abbreviations:
-  - $φ or ψ := ¬(¬φ and ¬ψ)$
-  - $φ release_(I) ψ := ¬(¬φ until_(I) ¬ψ)$
-  - $bold(F)_(I) φ := top until_(I) φ$
-  - $bold(G)_(I) φ := ¬ bold(F)_(I) ¬φ$
 ]
 
 #figure(
@@ -1460,12 +1455,161 @@ Each layer contributes one thing and nothing else:
   $
     sem(- tack.rr -) : (Σ × RR_(>= 0))^+ × #mfltl4 -> bb(B)_4
   $
-  which is defined inductively in @fig-mfltl4-sem. In each clause, $σ_k$ and $tau_k$
-  denote the $k$-th letter and timestamp of the timed word $rho$ on its left-hand side.
+  which is defined inductively in @fig-mfltl4-sem.
+]
+
+#remark[
+  The remaining operators are abbreviations:
+  - $φ or ψ := ¬(¬φ and ¬ψ)$
+  - $φ release_(I) ψ := ¬(¬φ until_(I) ¬ψ)$
+  - $bold(F)_(I) φ := top until_(I) φ$
+  - $bold(G)_(I) φ := ¬ bold(F)_(I) ¬φ$
 ]
 
 #proposition[
   For $a = 0$ and $b = ∞$, #mfltl4 is a conservative extension of #fltl4.
+]
+
+#place.flush()
+
+
+== Timed Propositional RV-LTL
+
+#let tptl4 = `TPTL₄`
+#let opn = $op("open")$
+#let cmp = $class("normal", ⋈)$ // a comparison among <, ≤, =, ≥, >
+
+#tptl4 extends #fltl4 with explicit references to time in the formula.
+Variables are introduced to measure times between two events.
+
+
+#definition([Syntax of #tptl4], label: <def:tptl4-syntax>)[
+  Let $Σ = 2^bold("AP")$ be the finite alphabet built over a finite set of atomic
+  propositions $bold("AP")$, with $p ∈ bold("AP")$ an atomic proposition. Let $cal(V)$
+  be a set of _clock variables_, with $x ∈ cal(V)$, let $c ∈ RR_(>= 0)$ be a constant
+  and let $cmp ∈ {<, ≤, =, ≥, >}$ be a comparison. The set of #tptl4 formulae is
+  inductively defined by the following grammar:
+  $
+    φ, ψ ::= top | bot | p | x ⋈ c | ¬ φ | φ and ψ | x. φ | φ until ψ | bold(X) φ | bold(overline(X)) φ
+  $
+  A formula is name _closed_ when each of its time constraints $x ⋈ c$ occurs under a freeze quantifier $x.$ of the same variable.
+]
+
+#figure(
+  placement: top,
+  align(center)[
+    #grid(
+      columns: (auto, auto),
+      column-gutter: 2.2em,
+      row-gutter: 1.4em,
+      align: left,
+      [
+        #fgrp[Boolean constants]
+        $
+          sem(rho comma nu tack.rr top) & = top \
+          sem(rho comma nu tack.rr bot) & = bot
+        $
+      ],
+      [
+        #fgrp[Boolean combinations]
+        $
+               sem(rho comma nu tack.rr ¬φ) & = overline(sem(rho comma nu tack.rr φ)) \
+          sem(rho comma nu tack.rr φ and ψ) & = sem(rho comma nu tack.rr φ) inter.sq sem(rho comma nu tack.rr ψ)
+        $
+      ],
+
+      [
+        #fgrp[atomic propositions]
+        $
+          sem(rho comma nu tack.rr p) & = cases(
+                                          top & "if " p in σ_1,
+                                          bot & "if " p in.not σ_1
+                                        )
+        $
+      ],
+      [
+        #fgrp[time constraints and freeze]
+        $
+          sem(rho comma nu tack.rr x ⋈ c) & = sem2(tau_1 - nu(x) ⋈ c) \
+               sem(rho comma nu tack.rr x. φ) & = sem(rho comma nu[x |-> tau_1] tack.rr φ)
+        $
+      ],
+    )
+
+    #block(width: 100%)[
+      #align(left, fgrp[next])
+      $
+                  sem(rho comma nu tack.rr bold(X) φ) & = cases(
+                                                          sem(rho^2 comma nu tack.rr φ) & "if " abs(rho) > 1,
+                                                          bot^p & "else"
+                                                        ) \
+        sem(rho comma nu tack.rr bold(overline(X)) φ) & = cases(
+                                                          sem(rho^2 comma nu tack.rr φ) & "if " abs(rho) > 1,
+                                                          top^p & "else"
+                                                        )
+      $
+    ]
+    #block(width: 100%)[
+      #align(left, fgrp[until])
+      $
+        sem(rho comma nu tack.rr φ until ψ) & = union.sq.big_(1 <= j <= abs(rho)) (
+                                                sem(rho^j comma nu tack.rr ψ)
+                                                inter.sq inter.sq.big_(1 <= k < j) sem(rho^k comma nu tack.rr φ)
+                                              ) \
+                                            & quad union.sq (
+                                                bot^p
+                                                inter.sq opn_(rho comma nu)(ψ)
+                                                inter.sq inter.sq.big_(1 <= k <= abs(rho)) sem(rho^k comma nu tack.rr φ)
+                                              )
+      $
+    ]
+    #block(width: 100%)[
+      #align(left, fgrp[deadline guard])
+      $
+        opn_(rho comma nu comma Theta)(x ⋈ c) & = cases(
+                                                     top & "if " x in Theta,
+                                                     sem2(tau_(abs(rho)) - nu(x) ⋈ c) & "if " x in.not Theta " and " cmp ∈ {<, ≤},
+                                                     sem2(tau_(abs(rho)) - nu(x) <= c) & "if " x in.not Theta " and " cmp ∈ {=},
+                                                     top & "if " x in.not Theta " and " cmp ∈ {≥, >}
+                                                   ) \
+          opn_(rho comma nu comma Theta)(φ and ψ) & = opn_(rho comma nu comma Theta)(φ) inter.sq opn_(rho comma nu comma Theta)(ψ) \
+            opn_(rho comma nu comma Theta)(¬ φ) & = opn_(rho comma nu comma Theta)(φ) \
+              opn_(rho comma nu comma Theta)(x. φ) & = opn_(rho comma nu comma (Theta ∪ {x}))(φ) \
+                        opn_(rho comma nu comma Theta)(φ) & = top quad "otherwise"
+      $
+    ]
+  ],
+  caption: [Semantics of #tptl4 formulae over a timed word $rho$ and a clock valuation $nu$.],
+) <fig-tptl4-sem>
+
+#definition([Semantics of #tptl4], label: <def:tptl4-sem>)[
+  A _clock valuation_ $nu : cal(V) -> RR_(>= 0)$ gives, for each clock variable, the
+  time instant at which it was frozen; $nu[x |-> t]$ maps $x$ to $t$ and agrees with $nu$
+  on the other variables. The truth value of a #tptl4 formula $φ$ on a timed word $rho$
+  under a clock valuation $nu$, denoted with $sem(rho comma nu tack.rr φ)$, is given by
+  the function
+  $
+    sem(- comma - tack.rr -) : (Σ × RR_(>= 0))^+ × (cal(V) -> RR_(>= 0)) × #tptl4 -> bb(B)_4
+  $
+  which is defined inductively in @fig-tptl4-sem. The until's guard
+  $opn_(rho comma nu comma Theta)(-)$, shown in the same figure, additionally takes a
+  finite set $Theta ⊆ cal(V)$ of clock variables shadowed by a freeze inside its
+  argument; $opn_(rho comma nu)(ψ)$ abbreviates $opn_(rho comma nu comma emptyset)(ψ)$.
+]
+
+
+#remark[
+  The remaining operators are abbreviations:
+  - $φ or ψ := ¬(¬φ and ¬ψ)$
+  - $φ release ψ := ¬(¬φ until ¬ψ)$
+  - $bold(F) φ := top until φ$
+  - $bold(G) φ := ¬ bold(F) ¬φ$
+]
+
+
+#proposition[
+  #tptl4 is a conservative extension of #fltl4: the two semantics coincide on formulae
+  without freeze quantifiers and time constraints.
 ]
 
 = Development Overview <sec-dev>
