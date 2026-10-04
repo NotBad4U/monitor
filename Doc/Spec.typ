@@ -129,6 +129,8 @@
 #let sem(x) = $lr(⟦ #x ⟧)_4$ // semantic bracket  ⟦ … ⟧₄
 #let semw(x) = $lr(⟦ #x ⟧)_ω$ // semantic bracket ⟦ … ⟧_ω : LTL over infinite traces
 #let semf(x) = $lr(⟦ #x ⟧)_F$ // semantic bracket ⟦ … ⟧_F : FLTL over finite traces
+#let until = $class("binary", bold("U"))$ // infix until, spaced as a binary operator
+#let release = $class("binary", bold("R"))$ // infix release, spaced as a binary operator
 
 // ---------- profunctor / arrow notation ----------
 #let Mly = $bold("Mly")$ // the category of Mealy behaviours
@@ -304,8 +306,8 @@ For comparison with logics over finite traces, we moreover add dual operators, n
   Let $p$ be an atomic proposition from a finite set of atomic propositions $bold("AP")$. The set of
   LTL formulae, denoted with LTL, is inductively defined by the following grammar:
   $
-    φ & ::= "true" | p | φ or φ | φ bold("U") φ | bold(X) φ \
-    φ & ::= "false" | ¬p | φ and φ | φ bold("R") φ | overline(bold(X)) φ \
+    φ & ::= "true" | p | φ or φ | φ until φ | bold(X) φ \
+    φ & ::= "false" | ¬p | φ and φ | φ release φ | overline(bold(X)) φ \
     φ & ::= ¬φ
   $
 ]
@@ -313,7 +315,7 @@ For comparison with logics over finite traces, we moreover add dual operators, n
 Moreover, we define by means of abbreviation the _finally_ $bold(F)$ and _globally_ $bold(G)$
 operators as
 
-$ bold(F) φ := "true" bold("U") φ quad "and" quad bold(G) φ := ¬ bold(F) ¬φ $
+$ bold(F) φ := "true" until φ quad "and" quad bold(G) φ := ¬ bold(F) ¬φ $
 
 as well as _implication_ $φ -> ψ$ as a shorthand for $¬φ or ψ$.
 LTL formulae over infinite traces are interpreted as usual over the two valued truth domain
@@ -368,7 +370,7 @@ $bb(B)_2$.
     #block(width: 100%)[
       #align(left, fgrp[until/release])
       $
-        semw(w tack.rr φ bold("U") ψ) & = cases(
+        semw(w tack.rr φ until ψ) & = cases(
                                           gap: #.7em,
                                           #mcase(
                                             $top$,
@@ -378,7 +380,7 @@ $bb(B)_2$.
                                           #scase($bot$, $"else"$),
                                         ) \
                                       \
-        semw(w tack.rr φ bold("R") ψ) & = cases(
+        semw(w tack.rr φ release ψ) & = cases(
                                           gap: #.7em,
                                           #mcase(
                                             $top$,
@@ -414,7 +416,7 @@ two modifications: if a strong next-state operator in some subformula $bold(X) �
 a state beyond the known finite prefix $u$, then this subformula is evaluated to $bot$, regardless
 of $φ$. Likewise, a subformula $overline(bold(X)) φ$ always evaluates to $top$ if it refers to a
 state beyond $u$. This approach is extended to the definition of the until and release operators.
-For example, to satisfy $φ bold("U") ψ$ with a finite trace $u$, there must exist a position
+For example, to satisfy $φ until ψ$ with a finite trace $u$, there must exist a position
 satisfying $ψ$ within $u$.
 
 #figure(
@@ -436,7 +438,7 @@ satisfying $ψ$ within $u$.
 
       #align(left, fgrp[until/release])
       $
-        semf(u tack.rr φ bold("U") ψ) & = cases(
+        semf(u tack.rr φ until ψ) & = cases(
                                           gap: #.7em,
                                           #mcase(
                                             $top$,
@@ -446,7 +448,7 @@ satisfying $ψ$ within $u$.
                                           #scase($bot$, $"else"$),
                                         ) \
                                       \
-        semf(u tack.rr φ bold("R") ψ) & = cases(
+        semf(u tack.rr φ release ψ) & = cases(
                                           gap: #.7em,
                                           #mcase(
                                             $top$,
@@ -597,7 +599,7 @@ The four maxims below say precisely what we expect from such a semantics.
   grammar:
   $
     φ, ψ ::= "true" | "false" | p | ¬ φ | φ and ψ | φ or ψ | bold(X) φ | overline(bold(X)) φ
-    | φ bold("U") ψ | φ bold("R") ψ | bold(F) φ | bold(G) φ
+    | φ until ψ | φ release ψ | bold(F) φ | bold(G) φ
   $
   In contrast to LTL (@def:ltl-syntax[-]), the constants range over the whole of
   $bb(B)_4$, which is often considered in the context of multi-valued logics , and $bold(F)$ and $bold(G)$ are taken as primitive operators rather than
@@ -659,14 +661,14 @@ The four maxims below say precisely what we expect from such a semantics.
     #block(width: 100%)[
       #align(left, fgrp[until/release])
       $
-        sem(w tack.rr φ bold("U") ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+        sem(w tack.rr φ until ψ) & = union.sq.big_(1 <= i <= abs(w)) (
                                          sem(w^i tack.rr ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
                                        )
                                        union.sq (
                                          text(fill: cteal, bot^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
                                        ) \
                                      \
-        sem(w tack.rr φ bold("R") ψ) & = inter.sq.big_(1 <= i <= abs(w)) (
+        sem(w tack.rr φ release ψ) & = inter.sq.big_(1 <= i <= abs(w)) (
                                          sem(w^i tack.rr ψ) union.sq union.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
                                        )
                                        inter.sq (
@@ -1340,6 +1342,130 @@ Each layer contributes one thing and nothing else:
 #remark()[
   Setting $k = 1$ and $f = "id"_Σ$, $g = "id"_(bb(B)_4)$ collapses every layer at once and
   returns the #M4 of @def:m4[-]: the enhancements are extensions, not replacements.
+]
+
+= Timed RV-LTL <sec-timed-rvttl>
+
+== Metric RV-LTL
+
+#let mfltl4 = `MFLTL₄`
+
+#definition([Timed word], label: <def:timed-word>)[
+  A _timed word_ over $Σ$ is a sequence
+  $
+    rho = (σ_1, tau_1) dots (σ_(abs(rho)), tau_(abs(rho))) ∈ (Σ × RR_(>= 0))^+
+  $
+  of letters $σ_k ∈ Σ$ paired with timestamps $tau_k ∈ RR_(>= 0)$, whose timestamps are
+  non-decreasing: $tau_k <= tau_(k+1)$ for all $1 <= k < abs(rho)$. For
+  $1 <= j <= abs(rho)$, we write $rho^j$ for the suffix
+  $(σ_j, tau_j) dots (σ_(abs(rho)), tau_(abs(rho)))$, which keeps the timestamps of
+  $rho$; in particular $rho^1 = rho$.
+]
+
+#definition([Syntax of Metric formulae], label: <def:metric-fltl4-syntax>)[
+  Let $Σ = 2^bold("AP")$ be the finite alphabet built over a finite set of atomic
+  propositions $bold("AP")$, with $p ∈ bold("AP")$ an atomic proposition. Let
+  $overline(RR)_(>= 0) = RR_(>= 0) ∪ {∞}$ be the extended non-negative reals, and let
+  $a ∈ RR_(>= 0)$ and $b ∈ overline(RR)_(>= 0)$ with $a <= b$ be the bounds of a time
+  interval $I = [a, b]$, read as $[a, ∞)$ when $b = ∞$. The set of #mfltl4 formulae is
+  inductively defined by the following grammar:
+  $
+    φ, ψ ::= top | bot | p | ¬ φ | φ and ψ | φ until_I ψ | bold(X)_I φ | bold(overline(X))_I φ
+  $
+  We denote the subscript $-_(I)$, with $I = [a, b]$, when it is not necessary to specify the endpoints $a$ and $b$.
+]
+
+#remark[
+  The remaining operators are abbreviations:
+  - $φ or ψ := ¬(¬φ and ¬ψ)$
+  - $φ release_(I) ψ := ¬(¬φ until_(I) ¬ψ)$
+  - $bold(F)_(I) φ := top until_(I) φ$
+  - $bold(G)_(I) φ := ¬ bold(F)_(I) ¬φ$
+]
+
+#figure(
+  placement: top,
+  align(center)[
+#grid(
+      columns: (auto, auto),
+      column-gutter: 2.2em,
+      row-gutter: 1.4em,
+      align: left,
+      [
+        #fgrp[Boolean constants]
+        $
+           sem(rho tack.rr top) & = top \
+          sem(rho tack.rr bot) & = bot
+        $
+      ],
+      [
+        #fgrp[Boolean combinations]
+        $
+               sem(rho tack.rr ¬φ) & = overline(sem(rho tack.rr φ)) \
+          sem(rho tack.rr φ and ψ) & = sem(rho tack.rr φ) inter.sq sem(rho tack.rr ψ)
+        $
+      ]
+    )
+ #block(width: 100%)[
+      #align(left, fgrp[atomic propositions])
+      $
+           sem(rho tack.rr p) & = cases(
+                                top & "if " p in σ_1,
+                                bot & "if " p in.not σ_1
+                              )
+          quad quad 
+          sem(rho tack.rr ¬p) & = cases(
+                                top & "if " p in.not σ_1,
+                                bot & "if " p in σ_1
+                              )
+        $
+ ]
+
+    #block(width: 100%)[
+      #align(left, fgrp[next])
+       $
+          sem(rho tack.rr bold(X)_([a,b]) φ) & = cases(
+                                                 sem2(tau_2 - tau_1 ∈ [a,b]) inter.sq sem(rho^2 tack.rr φ) & "if " abs(rho) > 1,
+                                                 bot^p & "else"
+                                               ) \
+          sem(rho tack.rr bold(overline(X))_([a,b]) φ) & = cases(
+                                                 sem2(tau_2 - tau_1 ∈ [a,b]) inter.sq sem(rho^2 tack.rr φ) & "if " abs(rho) > 1,
+                                                 top^p & "else"
+                                               )
+        $
+    
+    ]
+    #block(width: 100%)[
+      #align(left, fgrp[until])
+      $
+        sem(rho tack.rr φ until_([a,b]) ψ) & = union.sq.big_(1 <= j <= abs(rho)) (
+                                                           sem2(tau_j - tau_1 ∈ [a,b])
+                                                           inter.sq sem(rho^j tack.rr ψ)
+                                                           inter.sq inter.sq.big_(1 <= k < j) sem(rho^k tack.rr φ)
+                                                         ) \
+                                                       & quad union.sq (
+                                                           bot^p
+                                                           inter.sq sem2(tau_(abs(rho)) - tau_1 <= b)
+                                                           inter.sq inter.sq.big_(1 <= k <= abs(rho)) sem(rho^k tack.rr φ)
+                                                         )
+      $
+    ]
+  ],
+  caption: [Semantics of #mfltl4 formulae over a timed word $rho$.],
+) <fig-mfltl4-sem>
+
+#definition([Semantics of #mfltl4], label: <def:mfltl4-sem>)[
+  The truth value of an #mfltl4 formula $φ$ on a timed word $rho$, denoted with
+  $sem(rho tack.rr φ)$, is given by the function
+  $
+    sem(- tack.rr -) : (Σ × RR_(>= 0))^+ × #mfltl4 -> bb(B)_4
+  $
+  which is defined inductively in @fig-mfltl4-sem. In each clause, $σ_k$ and $tau_k$
+  denote the $k$-th letter and timestamp of the timed word $rho$ on its left-hand side.
+]
+
+#proposition[
+  For $a = 0$ and $b = ∞$, #mfltl4 is a conservative extension of #fltl4.
 ]
 
 = Development Overview <sec-dev>
