@@ -6,6 +6,7 @@
 #import "@preview/xarrow:0.4.0": xarrow, xarrowSquiggly, xarrowTwoHead
 #import "@preview/curryst:0.6.0": prooftree, rule, rule-set
 #import "@preview/dashy-todo:0.1.3": todo
+#import "@preview/mannot:0.4.0"
 
 #import theoretic.presets.basic: * // this will automatically load predefined styled environments
 #show ref: theoretic.show-ref      // this is necessary for references to theorems to work
@@ -50,8 +51,8 @@
 // ---------- palette ----------
 #let cteal = rgb("#1D9E75")
 #let ctealD = rgb("#0F6E56")
-#let camber = rgb("#EF9F27")
-#let camberD = rgb("#B26E0A")
+#let cpurpD = rgb("#EF9F27")
+#let cpurpDD = rgb("#B26E0A")
 #let cred = rgb("#E24B4A")
 #let credD = rgb("#A32D2D")
 #let cpurp = rgb("#7F77DD")
@@ -774,7 +775,7 @@ we are now ready to define the monitor  #acr("FSM") #M4 computing the #fltl4 sem
     spacing: (7.6em, 2.4em),
     node-outset: 2pt,
     sbox((0, 0), $bold(G)(r -> bold(F) a)$, cteal, name: <q0>),
-    sbox((1, 0), $bold(F) a and bold(G)(r -> bold(F) a)$, camber, name: <q1>),
+    sbox((1, 0), $bold(F) a and bold(G)(r -> bold(F) a)$, cpurpD, name: <q1>),
     edge(<q0>, <q1>, "->", elbl($r | bot^p$, credD), bend: 32deg, stroke: cgray + .7pt),
     edge(<q1>, <q0>, "->", elbl($a | top^p$, ctealD), bend: 32deg, stroke: cgray + .7pt),
     edge(<q0>, <q0>, "->", elbl($a | top^p$, ctealD), bend: 130deg, stroke: cgray + .7pt),
@@ -1011,7 +1012,7 @@ enlarge #M4.
       node-outset: 1pt,
       node((0, 0), elbl($A$, caxis), name: <sa>),
       sbox((1, 0), text(size: .92em, $m$), cteal, name: <sm>),
-      sbox((2, 0), text(size: .92em, $n$), camber, name: <sn>),
+      sbox((2, 0), text(size: .92em, $n$), cpurpD, name: <sn>),
       node((3, 0), elbl($C$, caxis), name: <sc>),
       edge(<sa>, <sm>, "->", stroke: cgray + .6pt),
       edge(<sm>, <sn>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
@@ -1027,7 +1028,7 @@ enlarge #M4.
       // left wiring: (g m, n)
       sbox((0, 0), text(size: .92em, $m$), cteal, name: <lm>),
       mbox((1, 0), text(size: .92em, $g$), name: <lg>),
-      sbox((2, 0), text(size: .92em, $n$), camber, name: <ln>),
+      sbox((2, 0), text(size: .92em, $n$), cpurpD, name: <ln>),
       edge(<lm>, <lg>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
       edge(<lg>, <ln>, elbl($B'$, caxis), "->", stroke: cgray + .6pt),
       compbox((<lm>, <lg>), inset: 9pt),
@@ -1038,11 +1039,11 @@ enlarge #M4.
       // right wiring: (m, n g)
       sbox((4, 0), text(size: .92em, $m$), cteal, name: <rm>),
       mbox((5, 0), text(size: .92em, $g$), name: <rg>),
-      sbox((6, 0), text(size: .92em, $n$), camber, name: <rn>),
+      sbox((6, 0), text(size: .92em, $n$), cpurpD, name: <rn>),
       edge(<rm>, <rg>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
       edge(<rg>, <rn>, elbl($B'$, caxis), "->", stroke: cgray + .6pt),
       compbox((<rg>, <rn>), inset: 9pt),
-      node((5.5, 1.35), dtext(fill: camberD, size: .76em)[$(m, n compose g)$]),
+      node((5.5, 1.35), dtext(fill: cpurpDD, size: .76em)[$(m, n compose g)$]),
     ),
   ),
   caption: [
@@ -1349,22 +1350,21 @@ Each layer contributes one thing and nothing else:
 #definition([Timed word], label: <def:timed-word>)[
   A _timed word_ over $Σ$ is a sequence
   $
-    rho = (σ_1, tau_1) dots (σ_(abs(rho)), tau_(abs(rho))) ∈ (Σ × RR_(>= 0))^+
+    rho = (σ_1, tau_1) dots (σ_(abs(rho)), tau_(abs(rho))) ∈ (Σ × RR_(>= 0))
   $
   of letters $σ_k ∈ Σ$ paired with timestamps $tau_k ∈ RR_(>= 0)$, whose timestamps are
-  non-decreasing: $tau_k <= tau_(k+1)$ for all $1 <= k < abs(rho)$. For
-  $1 <= j <= abs(rho)$, we write $rho^j$ for the suffix
-  $(σ_j, tau_j) dots (σ_(abs(rho)), tau_(abs(rho)))$, which keeps the timestamps of
-  $rho$; in particular $rho^1 = rho$.
+  non-decreasing: $tau_k <= tau_(k+1)$. We write $rho^j$ for the suffix $(σ_j, tau_j) dots (σ_(abs(rho)), tau_(abs(rho)))$
+  ,and write $rho(i) = (σ_i, tau_i)$.
 ]
 
 == Metric RV-LTL
 
 #let mfltl4 = `MFLTL₄`
+#import mannot: mark, markhl, annot
 
-The #mfltl4 is an extension of #fltl4 in which temporal operators are replaced by time-constrained versions like until, next operators.
+The #mfltl4 is an extension of #fltl4 in which temporal operators are replaced by time-constrained versions like until $(bold(U)_I)$, next $(bold(X)_I)$ operators.
 It is a linear-time logic that assumes both the interleaving and fictitious-clock abstractions.
-It is defined over a point-based weakly monotonic integer-time semantics.
+It is defined over a point-based weakly monotonic discrete non-negative time semantics.
 
 #definition([Syntax of #mfltl4], label: <def:metric-fltl4-syntax>)[
   Let $Σ = 2^bold("AP")$ be the finite alphabet built over a finite set of atomic
@@ -1373,7 +1373,7 @@ It is defined over a point-based weakly monotonic integer-time semantics.
   $a ∈ RR_(>= 0)$ and $b ∈ overline(RR)_(>= 0)$ with $a <= b$ be the bounds of a time interval $I = [a, b]$.
   The set of #mfltl4 formulae is inductively defined by the following grammar:
   $
-    φ, ψ ::= top | bot | p | ¬ φ | φ and ψ | φ until_I ψ | bold(X)_I φ | bold(overline(X))_I φ
+    φ, ψ ::= top | bot | p | ¬ φ | φ and ψ | φ until_I ψ | φ release_I ψ | bold(X)_I φ | bold(overline(X))_I φ
   $
   We denote the subscript $-_(I)$, with $I = [a, b]$, when it is not necessary to specify the endpoints $a$ and $b$.
 ]
@@ -1381,7 +1381,7 @@ It is defined over a point-based weakly monotonic integer-time semantics.
 #figure(
   placement: top,
   align(center)[
-#grid(
+    #grid(
       columns: (auto, auto),
       column-gutter: 2.2em,
       row-gutter: 1.4em,
@@ -1389,79 +1389,104 @@ It is defined over a point-based weakly monotonic integer-time semantics.
       [
         #fgrp[Boolean constants]
         $
-           sem(rho tack.rr top) & = top \
-          sem(rho tack.rr bot) & = bot
+          sem(rho comma i tack.rr top) & = top \
+          sem(rho comma i tack.rr bot) & = bot
         $
       ],
       [
         #fgrp[Boolean combinations]
         $
-               sem(rho tack.rr ¬φ) & = overline(sem(rho tack.rr φ)) \
-          sem(rho tack.rr φ and ψ) & = sem(rho tack.rr φ) inter.sq sem(rho tack.rr ψ)
+               sem(rho comma i tack.rr ¬φ) & = overline(sem(rho comma i tack.rr φ)) \
+          sem(rho comma i tack.rr φ and ψ) & = sem(rho comma i tack.rr φ) inter.sq sem(rho comma i tack.rr ψ)
         $
       ]
     )
- #block(width: 100%)[
+    #block(width: 100%)[
       #align(left, fgrp[atomic propositions])
       $
-           sem(rho tack.rr p) & = cases(
-                                top & "if " p in σ_1,
-                                bot & "if " p in.not σ_1
-                              )
-          quad quad 
-          sem(rho tack.rr ¬p) & = cases(
-                                top & "if " p in.not σ_1,
-                                bot & "if " p in σ_1
-                              )
-        $
- ]
-
-    #block(width: 100%)[
-      #align(left, fgrp[next])
-       $
-          sem(rho tack.rr bold(X)_([a,b]) φ) & = cases(
-                                                 sem2(tau_2 - tau_1 ∈ [a,b]) inter.sq sem(rho^2 tack.rr φ) & "if " abs(rho) > 1,
-                                                 bot^p & "else"
-                                               ) \
-          sem(rho tack.rr bold(overline(X))_([a,b]) φ) & = cases(
-                                                 sem2(tau_2 - tau_1 ∈ [a,b]) inter.sq sem(rho^2 tack.rr φ) & "if " abs(rho) > 1,
-                                                 top^p & "else"
-                                               )
-        $
-    
+          sem(rho comma i tack.rr p) & = cases(
+                                        top & "if " p in σ_i,
+                                        bot & "if " p in.not σ_i
+                                      )
+          quad quad
+          sem(rho comma i tack.rr ¬p) & = cases(
+                                        top & "if " p in.not σ_i,
+                                        bot & "if " p in σ_i
+                                      )
+      $
     ]
     #block(width: 100%)[
-      #align(left, fgrp[until])
+      #align(left, fgrp[(weak) next])
       $
-        sem(rho tack.rr φ until_([a,b]) ψ) & = union.sq.big_(1 <= j <= abs(rho)) (
-                                                           sem2(tau_j - tau_1 ∈ [a,b])
-                                                           inter.sq sem(rho^j tack.rr ψ)
-                                                           inter.sq inter.sq.big_(1 <= k < j) sem(rho^k tack.rr φ)
-                                                         ) \
-                                                       & quad union.sq (
-                                                           bot^p
-                                                           inter.sq sem2(tau_(abs(rho)) - tau_1 <= b)
-                                                           inter.sq inter.sq.big_(1 <= k <= abs(rho)) sem(rho^k tack.rr φ)
-                                                         )
+                  sem(rho comma i tack.rr bold(X)_(I) φ) & = cases(
+                                                              sem2(tau_(i+1) - tau_i ∈ I) inter.sq sem(rho comma i+1 tack.rr φ) & "if " i < abs(rho),
+                                                              bot^p & "if " i = abs(rho)
+                                                            ) \
+        sem(rho comma i tack.rr overline(bold(X))_(I) φ) & = cases(
+                                                              sem2(tau_(i+1) - tau_i ∈ I) inter.sq sem(rho comma i+1 tack.rr φ) & "if " i < abs(rho),
+                                                              top^p & "if " i = abs(rho)
+                                                            )
+      $
+    ]
+    #block(width: 100%)[
+      #align(left, fgrp[until/release])
+      $
+          sem(rho comma i tack.rr φ until_(I) ψ) & = union.sq.big_(i <= j <= abs(rho)) (
+                                                      sem2(tau_j - tau_i ∈ I)
+                                                      inter.sq sem(rho comma j tack.rr ψ)
+                                                      inter.sq inter.sq.big_(i <= k < j) sem(rho comma k tack.rr φ)
+                                                    ) \
+                                                  & quad union.sq (
+                                                      bot^p
+                                                      inter.sq sem2(tau_(abs(rho)) <= tau_i + b)
+                                                      inter.sq inter.sq.big_(i <= k <= abs(rho)) sem(rho comma k tack.rr φ)
+                                                    ) \
+                                                  \
+        sem(rho comma i tack.rr φ release_(I) ψ) & = inter.sq.big_(i <= j <= abs(rho)) (
+                                                      sem2(tau_j - tau_i in.not I)
+                                                      union.sq sem(rho comma j tack.rr ψ)
+                                                      union.sq union.sq.big_(i <= k < j) sem(rho comma k tack.rr φ)
+                                                    ) \
+                                                  & quad inter.sq (
+                                                      top^p
+                                                      union.sq sem2(tau_(abs(rho)) > tau_i + b)
+                                                      union.sq union.sq.big_(i <= k <= abs(rho)) sem(rho comma k tack.rr φ)
+                                                    )
       $
     ]
   ],
-  caption: [Semantics of #mfltl4 formulae over a timed word $rho$.],
+  caption: [Semantics of #mfltl4 formulae over a timed word $rho$ at position $i$.],
 ) <fig-mfltl4-sem>
 
-#definition([Semantics of #mfltl4], label: <def:mfltl4-sem>)[
-  The truth value of an #mfltl4 formula $φ$ on a timed word $rho$, denoted with
-  $sem(rho tack.rr φ)$, is given by the function
+#definition([Valuation of #mfltl4], label: <def:mfltl4-sem>)[
+  The satisfaction of an #mfltl4 formula $φ$ by a timed word $rho$ at a position
+  $1 <= i <= abs(rho)$, written $rho comma i tack.rr φ$, is not a relation as in
+  two-valued logic: it takes a truth value in $bb(B)_4$, given by the _valuation_
   $
-    sem(- tack.rr -) : (Σ × RR_(>= 0))^+ × #mfltl4 -> bb(B)_4
+    sem(- comma - tack.rr -) : (Σ × RR_(>= 0))^+ × NN × #mfltl4 -> bb(B)_4
   $
-  which is defined inductively in @fig-mfltl4-sem.
+  defined inductively on $φ$ in @fig-mfltl4-sem. Its until clause reads
+  #v(1.6em)
+  $
+    sem(rho comma i tack.rr φ until_(I) ψ)
+      & = union.sq.big_(i <= j <= abs(rho)) (
+            mark(sem2(tau_j - tau_i ∈ I), #<g-observed>, #cteal)
+            inter.sq sem(rho comma j tack.rr ψ)
+            inter.sq inter.sq.big_(i < k < j) sem(rho comma k tack.rr φ)
+          ) \
+      & quad union.sq (
+            bot^p
+            inter.sq mark(sem2(tau_(abs(rho)) <= tau_i + b), #<g-pending>, #cpurpD)
+            inter.sq inter.sq.big_(i <= k <= abs(rho)) sem(rho comma k tack.rr φ)
+          )
+    #annot(<g-observed>, pos: top, dx: 3em, dy: -1em, leader-connect: "elbow")[events for $I$ observed]
+    #annot(<g-pending>, pos: bottom, dx: 3em, dy: 0.5em, leader-connect: "elbow")[pending on missing events]
+  $
 ]
 
 #remark[
   The remaining operators are abbreviations:
   - $φ or ψ := ¬(¬φ and ¬ψ)$
-  - $φ release_(I) ψ := ¬(¬φ until_(I) ¬ψ)$
   - $bold(F)_(I) φ := top until_(I) φ$
   - $bold(G)_(I) φ := ¬ bold(F)_(I) ¬φ$
 ]
