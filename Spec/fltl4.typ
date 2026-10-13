@@ -96,130 +96,144 @@ The four maxims below say precisely what we expect from such a semantics.
 == Syntax and Semantics
 
 
+#let b4-def = $ bb(B)_4 = { top, top^p, bot^p, bot } $
+#let b4-order = $ bot subset.sq bot^p subset.sq top^p subset.sq top $
+
+#let b4-compl = $
+  overline(top) = bot quad overline(top^p) = bot^p quad overline(bot^p) = top^p quad overline(bot) = top
+$
+
 #definition([Truth domain $bb(B)_4$], label: <def:b4>)[
   The truth domain of #fltl4 is the four valued set
-  $ bb(B)_4 = { top, top^p, bot^p, bot } $
+  #b4-def
   where $top$ (resp. $bot$) denotes the definitive verdict _true_ (resp. _false_) and
   $top^p$ (resp. $bot^p$) the presumable verdict _presumably true_ (resp.
   _presumably false_). It is a finite distributive de Morgan lattice
   $(bb(B)_4, subset.sq.eq)$, hence a truth domain in the sense of @def:truth-dom[-], along the order:
-  $ bot subset.sq bot^p subset.sq top^p subset.sq top $
+  #b4-order
   with $inter.sq$ and $union.sq$ the meet and join of that order, and with
   complementation defined as:
-  $
-    overline(top) = bot quad overline(top^p) = bot^p quad overline(bot^p) = top^p quad overline(bot) = top
-  $
+  #b4-compl
 ]
+
+#let b4-not-boolean-top = $top^p union.sq overline(top^p) = top^p union.sq bot^p = top^p != top$
+#let b4-not-boolean-bot = $bot^p inter.sq overline(bot^p) = bot^p != bot$
 
 #proposition()[
   The $bb(B)_4$ is _not_ a Boolean lattice: the presumable verdicts satisfy
-  $top^p union.sq overline(top^p) = top^p union.sq bot^p = top^p != top$, and dually
-  $bot^p inter.sq overline(bot^p) = bot^p != bot$. This is precisely what lets a monitor
+  #b4-not-boolean-top, and dually
+  #b4-not-boolean-bot. This is precisely what lets a monitor
   report a verdict that is not yet final.
 ]
+
+#let fltl4-syntax = $
+  φ, ψ ::= "true" | "false" | p | ¬ φ | φ and ψ | φ or ψ | bold(X) φ | overline(bold(X)) φ
+  | φ until ψ | φ release ψ | bold(F) φ | bold(G) φ
+$
 
 #definition([Syntax of #fltl4 formulae], label: <def:fltl4-syntax>)[
   Let $Σ = 2^bold("AP")$ be the finite alphabet built over a finite set of atomic
   propositions $bold("AP")$, with $p ∈ bold("AP")$ an atomic proposition and
   $a ∈ Σ$ a letter. The set of #fltl4 formulae is inductively defined by the following
   grammar:
-  $
-    φ, ψ ::= "true" | "false" | p | ¬ φ | φ and ψ | φ or ψ | bold(X) φ | overline(bold(X)) φ
-    | φ until ψ | φ release ψ | bold(F) φ | bold(G) φ
-  $
+  #fltl4-syntax
   In contrast to LTL (@def:ltl-syntax[-]), the constants range over the whole of
   $bb(B)_4$, which is often considered in the context of multi-valued logics , and $bold(F)$ and $bold(G)$ are taken as primitive operators rather than
   as abbreviations.
 ]
 
+#let fltl4-sem = align(center)[
+  #grid(
+    columns: (auto, auto),
+    column-gutter: 2.2em,
+    row-gutter: 1.4em,
+    align: left,
+    [
+      #fgrp[Boolean constants]
+      $
+         sem(w tack.rr "true") & = top \
+        sem(w tack.rr "false") & = bot
+      $
+    ],
+    [
+      #fgrp[Boolean combinations]
+      $
+             sem(w tack.rr ¬φ) & = overline(sem(w tack.rr φ)) \
+         sem(w tack.rr φ or ψ) & = sem(w tack.rr φ) union.sq sem(w tack.rr ψ) \
+        sem(w tack.rr φ and ψ) & = sem(w tack.rr φ) inter.sq sem(w tack.rr ψ)
+      $
+    ],
+
+    [
+      #fgrp[atomic propositions]
+      $
+         sem(w tack.rr p) & = cases(
+                              top & "if " p in w_1,
+                              bot & "if " p in.not w_1
+                            ) \
+        sem(w tack.rr ¬p) & = cases(
+                              top & "if " p in.not w_1,
+                              bot & "if " p in w_1
+                            )
+      $
+    ],
+    [
+      #fgrp[(weak) next]
+      $
+                  sem(w tack.rr bold(X) φ) & = cases(
+                                               sem(w^2 tack.rr φ) & "if " abs(w) > 1,
+                                               text(fill: cteal, bot^p) & "else"
+                                             ) \
+        sem(w tack.rr overline(bold(X)) φ) & = cases(
+                                               sem(w^2 tack.rr φ) & "if " abs(w) > 1,
+                                               text(fill: cteal, top^p) & "else"
+                                             )
+      $
+    ],
+  )
+
+  #block(width: 100%)[
+    #align(left, fgrp[until/release])
+    $
+      sem(w tack.rr φ until ψ) & = union.sq.big_(1 <= i <= abs(w)) (
+                                       sem(w^i tack.rr ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
+                                     )
+                                     union.sq (
+                                       text(fill: cteal, bot^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
+                                     ) \
+                                   \
+      sem(w tack.rr φ release ψ) & = inter.sq.big_(1 <= i <= abs(w)) (
+                                       sem(w^i tack.rr ψ) union.sq union.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
+                                     )
+                                     inter.sq (
+                                       text(fill: cteal, top^p) union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
+                                     )
+    $
+
+    #align(left, fgrp[finally/globally])
+    $
+      sem(w tack.rr bold(F) φ) & = text(fill: cteal, bot^p) union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ) \
+      sem(w tack.rr bold(G) φ) & = text(fill: cteal, top^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
+    $
+  ]
+]
+
 #figure(
   placement: top,
-  align(center)[
-    #grid(
-      columns: (auto, auto),
-      column-gutter: 2.2em,
-      row-gutter: 1.4em,
-      align: left,
-      [
-        #fgrp[Boolean constants]
-        $
-           sem(w tack.rr "true") & = top \
-          sem(w tack.rr "false") & = bot
-        $
-      ],
-      [
-        #fgrp[Boolean combinations]
-        $
-               sem(w tack.rr ¬φ) & = overline(sem(w tack.rr φ)) \
-           sem(w tack.rr φ or ψ) & = sem(w tack.rr φ) union.sq sem(w tack.rr ψ) \
-          sem(w tack.rr φ and ψ) & = sem(w tack.rr φ) inter.sq sem(w tack.rr ψ)
-        $
-      ],
-
-      [
-        #fgrp[atomic propositions]
-        $
-           sem(w tack.rr p) & = cases(
-                                top & "if " p in w_1,
-                                bot & "if " p in.not w_1
-                              ) \
-          sem(w tack.rr ¬p) & = cases(
-                                top & "if " p in.not w_1,
-                                bot & "if " p in w_1
-                              )
-        $
-      ],
-      [
-        #fgrp[(weak) next]
-        $
-                    sem(w tack.rr bold(X) φ) & = cases(
-                                                 sem(w^2 tack.rr φ) & "if " abs(w) > 1,
-                                                 text(fill: cteal, bot^p) & "else"
-                                               ) \
-          sem(w tack.rr overline(bold(X)) φ) & = cases(
-                                                 sem(w^2 tack.rr φ) & "if " abs(w) > 1,
-                                                 text(fill: cteal, top^p) & "else"
-                                               )
-        $
-      ],
-    )
-
-    #block(width: 100%)[
-      #align(left, fgrp[until/release])
-      $
-        sem(w tack.rr φ until ψ) & = union.sq.big_(1 <= i <= abs(w)) (
-                                         sem(w^i tack.rr ψ) inter.sq inter.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
-                                       )
-                                       union.sq (
-                                         text(fill: cteal, bot^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
-                                       ) \
-                                     \
-        sem(w tack.rr φ release ψ) & = inter.sq.big_(1 <= i <= abs(w)) (
-                                         sem(w^i tack.rr ψ) union.sq union.sq.big_(1 <= j < i) sem(w^j tack.rr φ)
-                                       )
-                                       inter.sq (
-                                         text(fill: cteal, top^p) union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
-                                       )
-      $
-
-      #align(left, fgrp[finally/globally])
-      $
-        sem(w tack.rr bold(F) φ) & = text(fill: cteal, bot^p) union.sq union.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ) \
-        sem(w tack.rr bold(G) φ) & = text(fill: cteal, top^p) inter.sq inter.sq.big_(1 <= i <= abs(w)) sem(w^i tack.rr φ)
-      $
-    ]
-  ],
+  fltl4-sem,
   caption: [Semantics of #fltl4 formulae over a non-empty finite trace $w = w_1 dots w_(abs(w)) ∈ Σ^+$],
 ) <fig-fltl4-sem>
 
 #todo(position: "inline")[Semantics equivalence between F, G and U, R ??]
 
 
+#let fltl4-sem-sig = $
+  sem(- tack.rr -) : Σ^+ × #fltl4 -> bb(B)_4
+$
+
 #definition([Semantics of #fltl4], label: <def:fltl4-sem>)[
   The truth value of an #fltl4 formula $φ$, denoted with $sem(w tack.rr φ)$, is given by the function
-  $
-    sem(- tack.rr -) : Σ^+ × #fltl4 -> bb(B)_4
-  $
+  #fltl4-sem-sig
   which is defined inductively as shown in @fig-fltl4-sem.
 ]
 
@@ -234,46 +248,53 @@ which is what impartiality asks for.
 A _state machine_ is a procedure that consumes the input letter by letter and outputs the semantics of the trace read so far with respect to the formula the monitor was built for.
 For each temporal formula registered to the `monitor` it is then compiled into a Mealy machine, also called #acr("FSM").
 
+#let mealy-tuple = $cal(M) = (S, s_0, Σ, Γ, δ)$
+#let mealy-delta = $delta : Sigma times S -> Gamma times S$
+
 #definition("Mealy machine", label: <def:mealy>)[
-  A Mealy machine is a tuple  $cal(M) = (S, s_0, Σ, Γ, δ)$:
+  A Mealy machine is a tuple  #mealy-tuple:
   - $S$ a finite set of states,
   - a start state $s_0 ∈ S$,
   - Σ is a finite set called the input alphabet,
   - Γ is the output alphabet and,
-  - $delta : Sigma times S -> Gamma times S$ is the transition function.
+  - #mealy-delta is the transition function.
 ]
 
 we are now ready to define the monitor  #acr("FSM") #M4 computing the #fltl4 semantics in @def:fltl4-sem[-].
 
-#definition([#acr("FSM") #M4], label: <def:m4>)[
-  A `monitor` for #fltl4 is defined by the tuple $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$ with the following transition function:
+#let m4-tuple = $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$
 
-  #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 1.5em,
-    $
-           delta_4 (a, "true") & = (top, "true") \
-          delta_4 (a, "false") & = (bot, "false") \
-                delta_4 (a, p) & = cases(
-                                   (top, "true") & "if " p in a,
-                                   (bot, "false") & "else"
-                                 ) \
-            delta_4 (a, not p) & = cases(
-                                   (bot, "false") & "if " p in a,
-                                   (top, "true") & "else"
-                                 ) \
-       delta_4 (a, phi or psi) & = (v_phi union.sq v_psi, "nrm" (phi' or psi')) \
-      delta_4 (a, phi and psi) & = (v_phi inter.sq v_psi, "nrm" (phi' and psi'))
-    $,
-    $
-                delta_4 (a, X phi) & = (bot^p, phi) \
-      delta_4 (a, overline(X) phi) & = (top^p, phi) \
-            delta_4 (a, phi U psi) & = delta_4 (a, psi or (phi and X (phi U psi))) \
-            delta_4 (a, phi R psi) & = delta_4 (a, psi and (phi or overline(X) (phi R psi))) \
-                delta_4 (a, F phi) & = delta_4 (a, phi or X F phi) \
-                delta_4 (a, G phi) & = delta_4 (a, phi and overline(X) G phi)
-    $,
-  )
+#let m4-delta = grid(
+  columns: (1fr, 1fr),
+  column-gutter: 1.5em,
+  $
+         delta_4 (a, "true") & = (top, "true") \
+        delta_4 (a, "false") & = (bot, "false") \
+              delta_4 (a, p) & = cases(
+                                 (top, "true") & "if " p in a,
+                                 (bot, "false") & "else"
+                               ) \
+          delta_4 (a, not p) & = cases(
+                                 (bot, "false") & "if " p in a,
+                                 (top, "true") & "else"
+                               ) \
+     delta_4 (a, phi or psi) & = (v_phi union.sq v_psi, "nrm" (phi' or psi')) \
+    delta_4 (a, phi and psi) & = (v_phi inter.sq v_psi, "nrm" (phi' and psi'))
+  $,
+  $
+              delta_4 (a, X phi) & = (bot^p, phi) \
+    delta_4 (a, overline(X) phi) & = (top^p, phi) \
+          delta_4 (a, phi U psi) & = delta_4 (a, psi or (phi and X (phi U psi))) \
+          delta_4 (a, phi R psi) & = delta_4 (a, psi and (phi or overline(X) (phi R psi))) \
+              delta_4 (a, F phi) & = delta_4 (a, phi or X F phi) \
+              delta_4 (a, G phi) & = delta_4 (a, phi and overline(X) G phi)
+  $,
+)
+
+#definition([#acr("FSM") #M4], label: <def:m4>)[
+  A `monitor` for #fltl4 is defined by the tuple #m4-tuple with the following transition function:
+
+  #m4-delta
   where _nrm_ is a normalisation function, let unspecified yet, of a formula $phi$ that eliminate any redundancy present in the formula.
 ]
 
@@ -314,10 +335,12 @@ we are now ready to define the monitor  #acr("FSM") #M4 computing the #fltl4 sem
 
 Following the characterization of #fltl4, we can etablish a correspondance between #fltl4 semantics and #acr("FSM") $cal(M)$.
 
+#let m4-correct = $
+  delta_4(s,u)_o = [ u tack.rr phi ]_4
+$
+
 #theorem()[
-  Let $phi$ be an #fltl4 formula. Then there is an effective procedure constructing an FSM $cal(M)_4^phi = (S, s_0, Σ, bb(B)_4, delta_4)$ such that for all $u ∈ Σ^*$ the following holds:
-  $
-    delta_4(s,u)_o = [ u tack.rr phi ]_4
-  $
+  Let $phi$ be an #fltl4 formula. Then there is an effective procedure constructing an FSM #m4-tuple such that for all $u ∈ Σ^*$ the following holds:
+  #m4-correct
   with $(-)_o$ the projection of the output for $Gamma times S$.
 ]

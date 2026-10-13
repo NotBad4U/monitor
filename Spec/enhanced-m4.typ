@@ -4,15 +4,19 @@
 
 In the previous section, we showed how to derive a monitor for an #fltl4 from a Mealy machine. However, this machine does not tackle all the problems, such as mechanising the Anticipation maxim. Furthermore, a system is rarely defined by a single property; it can be a composition of multiple temporal properties, and for now, we have not defined how to compose monitors. In this section, we present our approach to extending Mealy machines to solve these problems.
 
-First, we present the coalgebraic aspect of Mealy machine @mealy-coalg @bonchi2026effectfulmealymachines. Let $A$ be a finite set and let $B$ be a (possibly infinite) meet-semilattice. A Mealy machine (S, $f$) with inputs in A and outputs in B consists of a set of states $S$ together with a function:
-$
+#let mealy-coalg-map = $
   f:S -> (B times S)^A
 $
+
+First, we present the coalgebraic aspect of Mealy machine @mealy-coalg @bonchi2026effectfulmealymachines. Let $A$ be a finite set and let $B$ be a (possibly infinite) meet-semilattice. A Mealy machine (S, $f$) with inputs in A and outputs in B consists of a set of states $S$ together with a function:
+#mealy-coalg-map
 Such a map $f$ is equivalent to the _uncurried_ map between cartesian product $chevron.l "out", "next"chevron.r: A times S -> B times S$.
 In coalgebraic terms, a Mealy machine $cal(M)(S, f)$ is  a coalgebra of the functor $frak(M): "Set" -> "Set"$ defined, for any set X, as $frak(M)(X) = (B times X)^A$. Throughout this subsection $A$ and $B$ stay fixed; @def:mealy-prof[-] releases them and turns $frak(M)$ into a family $frak(M)_(A,B)$ indexed by the two alphabets.
 
+#let mealy-coalg = $gamma: C -> frak(M)(C)$
+
 #definition(label: <def:mealy-coalg>)[
-  A $frak(M)$-_coalgebra_ is a pair $(C, gamma)$, where $C$ is a set (of states) and $gamma: C -> frak(M)(C)$ is a (transition) function.
+  A $frak(M)$-_coalgebra_ is a pair $(C, gamma)$, where $C$ is a set (of states) and #mealy-coalg is a (transition) function.
 ]
 
 We adopt the notation $s tr(a, b) s'$ to denotes the (transition) function result $f(s)(a) = ⟨b, s'⟩$.
@@ -50,11 +54,13 @@ We adopt the notation $s tr(a, b) s'$ to denotes the (transition) function resul
   the anticipating monitor removes.
 ]
 
+#let mealy-hom = $
+  g compose h = frak(M)(h) compose f, quad "where " frak(M)(h) = ("id"_B times h)^A
+$
+
 #proposition("Mealy homomorphism", label: <def:mealy-hom>)[
   A homomorphism from a Mealy machine $(S, f)$ to a Mealy machine $(T, g)$ is a function $h: S -> T$ preserving initial outputs and next states:
-  $
-    g compose h = frak(M)(h) compose f, quad "where " frak(M)(h) = ("id"_B times h)^A
-  $
+  #mealy-hom
 ]
 
 == #M4 compositions and pre-post treatments with Profunctor
@@ -65,53 +71,67 @@ Both intentions are captured by reading a Mealy machine as an element of a _prof
 @benabou2000distributors, contravariant in the input alphabet (the pre-treatment) and covariant in
 the output alphabet (the post-treatment).
 
+#let profunctor-def = $P : cal(D)^"op" times cal(C) -> "Set"$
+
+#let mealy-functor = $
+  frak(M) : "Set"^"op" times "Set" -> ["Set", "Set"], quad
+  frak(M)_(A,B)(X) = (B times X)^A
+$
+
+#let mealy-nat = $
+  frak(M)_(f,g) : frak(M)_(A,B) => frak(M)_(A',B'), quad
+  (frak(M)_(f,g))_X (h) = (g times "id"_X) compose h compose f
+$
+
+#let mly-type = $
+  Mly : "Set"^"op" times "Set" -> "Set"
+$
+
+#let mly-obj = $
+  Mly(A, B) := nu frak(M)_(A,B) = nu X. #h(.2em) (B times X)^A
+$
+
+#let mly-mor = $
+  Mly(f, g) := "ana"(frak(M)_(f,g) compose "out") : Mly(A, B) -> Mly(A', B')
+$
+
 #definition([Mealy profunctor $Mly$], label: <def:mealy-prof>)[
   A _profunctor_ $P : cal(C) arrow.r.not cal(D)$ is a functor
-  $P : cal(D)^"op" times cal(C) -> "Set"$ @benabou2000distributors. An element of $P(d, c)$ is
+  #profunctor-def @benabou2000distributors. An element of $P(d, c)$ is
   a _heteromorphism_ $d -> c$ (not a morphism of $cal(C)$ nor of $cal(D)$).
   For $f : d -> d' in cal(D)$, $g : c -> c' in cal(C)$ and $x in P(d', c)$, the two actions
   are written $x compose f in P(d, c)$ and $g compose x in P(d', c')$.
 
   In @def:mealy-coalg[-] the two alphabets were fixed. Releasing them turns $frak(M)$ into a
   family of endofunctors indexed by them,
-  $
-    frak(M) : "Set"^"op" times "Set" -> ["Set", "Set"], quad
-    frak(M)_(A,B)(X) = (B times X)^A
-  $
+  #mealy-functor
   contravariant in $A$ and covariant in $B$: a pre-treatment $f : A' -> A$ and a post-treatment
   $g : B -> B'$ induce the natural transformation
-  $
-    frak(M)_(f,g) : frak(M)_(A,B) => frak(M)_(A',B'), quad
-    (frak(M)_(f,g))_X (h) = (g times "id"_X) compose h compose f
-  $
+  #mealy-nat
   The Mealy profunctor is this family followed by the final-coalgebra operator $nu$,
-  $
-    Mly : "Set"^"op" times "Set" -> "Set"
-  $
+  #mly-type
   a functor with the usual two components:
 
   - on _objects_, the set of Mealy behaviours from the input alphabet $A$ to the output
     alphabet $B$,
-    $
-      Mly(A, B) := nu frak(M)_(A,B) = nu X. #h(.2em) (B times X)^A
-    $
+    #mly-obj
     By finality it carries an isomorphism
     $"out" : Mly(A, B) -> frak(M)_(A,B)(Mly(A, B)) = (B times Mly(A, B))^A$; we write
     $m(a) = ⟨b, m'⟩$ for one unfolding.
   - on _morphisms_, the image of $frak(M)_(f,g)$ under $nu$: post-composing $"out"$ with
     $frak(M)_(f,g)$ turns the set $Mly(A, B)$ into an $frak(M)_(A',B')$-coalgebra, and
     $Mly(f, g)$ is its anamorphism @yang2022fantasticmorphismsthemguide into the final one,
-    $
-      Mly(f, g) := "ana"(frak(M)_(f,g) compose "out") : Mly(A, B) -> Mly(A', B')
-    $
+    #mly-mor
 ]
+
+#let mly-actions = $
+  (m compose f)(a') & = ⟨b, m' compose f⟩, quad    & "where" ⟨b, m'⟩ = m(f(a')) \
+   (g compose m)(a) & = ⟨g(b), g compose m'⟩, quad &     "where" ⟨b, m'⟩ = m(a)
+$
 
 #proposition[ The two profunctor actions written above are the degenerate cases $m compose f := Mly(f, "id"_B)(m)$ and
   $g compose m := Mly("id"_A, g)(m)$, which unfold to
-  $
-    (m compose f)(a') & = ⟨b, m' compose f⟩, quad    & "where" ⟨b, m'⟩ = m(f(a')) \
-     (g compose m)(a) & = ⟨g(b), g compose m'⟩, quad &     "where" ⟨b, m'⟩ = m(a)
-  $
+  #mly-actions
   so that $m compose f in Mly(A', B)$ and $g compose m in Mly(A, B')$. The semilattice structure
   asked of $B$ in @def:mealy-coalg[-] plays no role here: $Mly$ takes its output alphabet in
   $"Set"$, and $g$ is an arbitrary function.
@@ -143,24 +163,26 @@ The two actions of @def:mealy-prof[-] _are_ the pre- and the post-treatment of a
 keep $S$ and $s_0$ and only rewire the transition (@fig-prof-actions), which is why neither can
 enlarge #M4.
 
+#let m4-actions = align(center, grid(
+  columns: (auto, auto),
+  column-gutter: 2.4em,
+  align: horizon,
+  prooftree(rule(
+    label: [pre],
+    $s tr(f(a'), b) s'$,
+    $s tr(a', b) s'$,
+  )),
+  prooftree(rule(
+    label: [post],
+    $s tr(a, b) s'$,
+    $s tr(a, g(b)) s'$,
+  )),
+))
+
 #definition([Actions on #M4], label: <def:actions>)[
   On a machine presentation, the right action $m compose f in Mly(A', B)$ (pre-treatment) and the left
   action $g compose m in Mly(A, B')$ (post-treatment) keep $S$ and $s_0$ and rewire the transition:
-  #align(center, grid(
-    columns: (auto, auto),
-    column-gutter: 2.4em,
-    align: horizon,
-    prooftree(rule(
-      label: [pre],
-      $s tr(f(a'), b) s'$,
-      $s tr(a', b) s'$,
-    )),
-    prooftree(rule(
-      label: [post],
-      $s tr(a, b) s'$,
-      $s tr(a, g(b)) s'$,
-    )),
-  ))
+  #m4-actions
 ]
 
 #figure(
@@ -187,13 +209,15 @@ enlarge #M4.
   ],
 ) <fig-prof-actions>
 
+#let mly-comp = $
+  (Mly seq Mly)(A, C) = integral^B Mly(A, B) times Mly(B, C).
+$
+
 #definition([Mealy composition], label: <def:mly-comp>)[
   Profunctors compose by tracing out the middle object with a _coend_ @coend. We write that
   composition $seq$, in diagrammatic order, so that $P seq Q$ is "$P$ first, then $Q$".
   Composing $Mly$ with itself over a middle alphabet $B$ is given by:
-  $
-    (Mly seq Mly)(A, C) = integral^B Mly(A, B) times Mly(B, C).
-  $
+  #mly-comp
   A representative is a pair $(m, n)$ of heteromorphisms $m : A arrow.r.not B$ and
   $n : B arrow.r.not C$, that is $m in Mly(A, B)$ and $n in Mly(B, C)$ for some $B$, and
   the coend identifies $(g compose m, n)$ with $(m, n compose g)$ for every $g : B -> B'$, $m in Mly(A, B)$ and
@@ -259,41 +283,51 @@ enlarge #M4.
 
 We restate the fourth of our maxims "Anticipation: the moment every infinite continuation of the observed prefix agrees on one verdict, the finite trace must already be evaluated to that verdict". The monitor of @def:m4[-] does not satisfy such property. Being an $frak(M)$-coalgebra, it is unfolded by an _anamorphism_ @yang2022fantasticmorphismsthemguide, and an anamorphism produces exactly one layer of $Mly(Σ, bb(B)_4)$ per transition of $delta_4$, so the machine only ever commits to the verdict of the step it is currently taking. Anticipation asks for the opposite commitment. The corecursion scheme that grants precisely this is the _futumorphism_ @yang2022fantasticmorphismsthemguide. A futumorphism returns a finite _plan_ — several layers already built — and consults the seed again only at the leaves of that plan. Plans are the elements of the free monad of $frak(M)$.
 
+#let free-monad = $
+  Fre (X) = mu Y. #h(.2em) X + frak(M)(Y) = mu Y. #h(.2em) X + (B times Y)^A
+$
+
+#let free-ctors = $
+  eta : X -> Fre (X), quad "op" : frak(M)(Fre (X)) -> Fre (X).
+$
+
 // 𝔐(−) : Ob(Set) → Ob(Set),    𝔐(Y) = (B × Y)^A
 // 𝔐(−) : Hom(S, T) → Hom(𝔐(S), 𝔐(T)),    𝔐(h) = (id_B × h^A
 #definition([Plans $Fre$], label: <def:free-mealy>)[
   The _free monad_ of $frak(M)$ sends a set $X$ of seeds to the least fixed point
-  $
-    Fre (X) = mu Y. #h(.2em) X + frak(M)(Y) = mu Y. #h(.2em) X + (B times Y)^A
-  $
+  #free-monad
   with the two constructors
-  $
-    eta : X -> Fre (X), quad "op" : frak(M)(Fre (X)) -> Fre (X).
-  $
+  #free-ctors
   We call an element of $Fre (X)$ a _plan_. The plan $eta(x)$ is "resume from the seed $x$"; the plan $"op"(t)$ is "make the transitions prescribed by the layer $t in (B times Fre (X))^A$, then carry on with the plans it leaves behind". Since $Fre (X)$
   is a _least_ fixed point, every branch of a plan is finite and ends in a seed: a plan performs only a finite number of lookahead steps.
 ]
 
+#let futu-coalg = $
+  gamma : S -> frak(M)(Fre (S))
+$
+
+#let futu-resume = $
+  gamma^dagger : Fre (S) -> frak(M)(Fre (S)) \
+  gamma^dagger (eta(s)) = gamma(s) quad gamma^dagger ("op"(t)) = t.
+$
+
+#let futu-def = $
+        "futu" & : (S -> frak(M)(Fre space S)) -> S -> Mly(A, B) \
+  "futu" gamma & := "ana"(gamma^dagger) compose eta #h(.6em) : #h(.6em) S -> Mly(A, B).
+$
+
 #definition([$frak(M)$-futumorphism], label: <def:futu>)[
   An _anticipating coalgebra_ on a set $S$ is a map
-  $
-    gamma : S -> frak(M)(Fre (S))
-  $
+  #futu-coalg
   that is, a coalgebra allowed to answer with plans rather than with bare seeds. Every plan
   can itself be resumed, which turns $gamma$ into an ordinary $frak(M)$-coalgebra on plans:
-  $
-    gamma^dagger : Fre (S) -> frak(M)(Fre (S)) \
-    gamma^dagger (eta(s)) = gamma(s) quad gamma^dagger ("op"(t)) = t.
-  $
+  #futu-resume
   The first case expands a seed $s$ by consulting $gamma$; the second hands back a layer
   $t$ the plan already prescribes, as it stands, without consulting $gamma$ again. The two
   cases say exactly that $gamma^dagger$ extends $gamma$ along $eta$ (@fig-futu-resume).
   Because $Mly(A, B)$ is the final $frak(M)$-coalgebra (@def:mealy-prof[-]), $gamma^dagger$ has a unique homomorphism $"ana"(gamma^dagger)$ into it, and the
   _futumorphism_ of $gamma$ is its restriction to seeds:
-  $
-          "futu" & : (S -> frak(M)(Fre space S)) -> S -> Mly(A, B) \
-    "futu" gamma & := "ana"(gamma^dagger) compose eta #h(.6em) : #h(.6em) S -> Mly(A, B).
-  $
+  #futu-def
 ]
 
 #figure(
@@ -313,19 +347,23 @@ We restate the fourth of our maxims "Anticipation: the moment every infinite con
   ],
 ) <fig-futu-resume>
 
-The isomorphism $Mly(A, B) tilde.equiv frak(M)(Mly(A, B))$ makes $Mly(A, B)$ an
-$frak(M)$-algebra, and therefore a $Fre$-algebra:
-$
+#let futu-flat = $
   flat : Fre (Mly(A, B)) -> Mly(A, B)
 $
+
+#let futu-universal = $
+  "out" compose h = frak(M)(flat compose Fre (h)) compose gamma
+$
+
+The isomorphism $Mly(A, B) tilde.equiv frak(M)(Mly(A, B))$ makes $Mly(A, B)$ an
+$frak(M)$-algebra, and therefore a $Fre$-algebra:
+#futu-flat
 which _flattens a plan into the behaviour it denotes_: it makes the transitions the plan
 prescribes, layer by layer, and on reaching a leaf carries on with the behaviour sitting
 there. Since $Fre (h)$ relabels the leaves of a plan over $S$ with behaviours,
 $flat compose Fre (h) : Fre (S) -> Mly(A, B)$ sends a plan to the behaviour it denotes. In
 terms of it, $"futu"(gamma)$ is the unique $h : S -> Mly(A, B)$ making
-$
-  "out" compose h = frak(M)(flat compose Fre (h)) compose gamma
-$
+#futu-universal
 commute (@fig-futu-square), which is the universal property we appeal to below. Restricting $gamma$ to plans of
 the form $eta(s)$ collapses this to $"out" compose h = frak(M)(h) compose gamma$, the homomorphism condition of @def:mealy-hom[-]: the futumorphism is a conservative extension of
 the unfolding already used for #M4.
@@ -358,67 +396,83 @@ The _residual_ formula (i.e. the n-th approximation) carries that information.
   ],
 ) <fig-futu-square>
 
+#let dec-def = $
+  "dec"(phi) = b quad "iff" quad forall w in Σ^ω. #h(.3em) semw(w tack.rr phi) = b
+$
+
 #definition([Decided residual], label: <def:decided>)[
   A formula $phi$ is _decided_ on $b in bb(B)_2 subset bb(B)_4$, written $"dec"(phi) = b$, when every
   infinite word agrees on it:
-  $
-    "dec"(phi) = b quad "iff" quad forall w in Σ^ω. #h(.3em) semw(w tack.rr phi) = b
-  $
+  #dec-def
   and $"dec"(phi) = #h(.15em) ?$ (_undecided_) when no such $b$ exists. Deciding $phi$ is an
   LTL validity check, and the residuals reachable from $phi$ under $delta_4$ form a finite
   set, so $"dec"$ is a finite table computed once, when the monitor is built.
 ]
 
+#let residual-lemma = $
+  semw(u w tack.rr phi) = semw(w tack.rr delta_4^*(u, phi)).
+$
+
 #lemma([$delta_4$ computes the residual], label: <lem:residual>)[
   Write $delta_4^*(u, phi)$ for the formula component of $delta_4$ iterated along
   $u in Σ^*$. Then for every finite prefix $u in Σ^*$ and every infinite continuation
   (suffix) $w in Σ^ω$ of $u$,
-  $
-    semw(u w tack.rr phi) = semw(w tack.rr delta_4^*(u, phi)).
-  $
+  #residual-lemma
 ]
 
 Consequently the assertion that every infinite continuation of $u$ agrees on $b$" is interpreted as $"dec"(delta_4^*(u, phi)) = b$.
 
+#let m4k-final-verdict = $
+  delta_4(a, b) = (b, b) #h(.6em) in #h(.6em) bb(B)_4 times #fltl4
+  quad "for every " a in Σ .
+$
+
+#let m4k-kappa = $
+  kappa : #fltl4 -> Fre (#fltl4)
+$
+
+#let m4k-step-type = $
+  "step"_kappa : #fltl4 -> frak(M)(Fre (#fltl4))
+$
+
+#let m4k-step = $
+  "step"_kappa (phi)(a) = cases(
+    ⟨b, eta(b)⟩ & "if " "dec"(phi') = b in bb(B)_2 quad & ("commit"),
+    ⟨v, kappa(phi')⟩ & "if " "dec"(phi') = #h(.15em) ? quad & ("defer to" kappa)
+  )
+$
+
+#let m4k-plan = $
+  "plan"_0 = eta, quad "plan"_(j+1) = "op" compose "step"_("plan"_j) .
+$
+
+#let m4k-def = $
+               gamma_4^k & : #fltl4 -> frak(M)(Fre (#fltl4)) \
+               gamma_4^k & := "step"_("plan"_(k-1)) \
+  quad cal(M)_4^(phi, k) & := "futu"(gamma_4^k)(phi) in Mly(Σ, bb(B)_4).
+$
+
 #definition([Anticipating monitor $cal(M)_4^(phi, k)$], label: <def:m4-futu>)[
   Fix a _threshold_ $k >= 1$ and take #fltl4 formulae as seeds, so the coalgebra to be built
   has the shape $#fltl4 -> frak(M)(Fre (#fltl4))$ asked for by @def:futu[-]. A definitive verdict $b in {top, bot} subset.eq bb(B)_4$ is also a _formula_ therefore a final verdict has the canonical (transition) form:
-  $
-    delta_4(a, b) = (b, b) #h(.6em) in #h(.6em) bb(B)_4 times #fltl4
-    quad "for every " a in Σ .
-  $
+  #m4k-final-verdict
   A step is parametric in a _continuation_
-  $
-    kappa : #fltl4 -> Fre (#fltl4)
-  $
+  #m4k-kappa
   which decides how to carry on from a residual that is still undecided: given such a
   residual it returns the plan to be followed from there. Given $kappa$, the step
-  $
-    "step"_kappa : #fltl4 -> frak(M)(Fre (#fltl4))
-  $
+  #m4k-step-type
   reads a letter $a in Σ$, takes the ordinary transition $(v, phi') = delta_4(a, phi)$, and
   answers
-  $
-    "step"_kappa (phi)(a) = cases(
-      ⟨b, eta(b)⟩ & "if " "dec"(phi') = b in bb(B)_2 quad & ("commit"),
-      ⟨v, kappa(phi')⟩ & "if " "dec"(phi') = #h(.15em) ? quad & ("defer to" kappa)
-    )
-  $
+  #m4k-step
   In the first case, the residual is settled (@def:decided[-]), so the step overrides the
   verdict $v$ that $delta_4$ would have emitted, outputs the definitive $b$ instead, and
   collapses to the bare constant seed $eta(b)$ ignoring the continuation $kappa$. In the second case the residual is still open, so the step keeps $delta_4$'s own verdict $v$ and
   hands $phi'$ to $kappa$ to be developed further.
   Therefore, iterating on the step deepens the plan.
   We write $"plan"_j : #fltl4 -> Fre (#fltl4)$ for the continuation that unfolds $j$ layers:
-  $
-    "plan"_0 = eta, quad "plan"_(j+1) = "op" compose "step"_("plan"_j) .
-  $
+  #m4k-plan
   Finally, the anticipating coalgebra and the machine it denotes are then:
-  $
-                 gamma_4^k & : #fltl4 -> frak(M)(Fre (#fltl4)) \
-                 gamma_4^k & := "step"_("plan"_(k-1)) \
-    quad cal(M)_4^(phi, k) & := "futu"(gamma_4^k)(phi) in Mly(Σ, bb(B)_4).
-  $
+  #m4k-def
 ]
 
 #example([Anticipation], label: <ex:futu>)[
@@ -503,16 +557,20 @@ Consequently the assertion that every infinite continuation of $u$ agrees on $b$
   caption: [The constructions the enhanced monitor is assembled from.],
 ) <tab-constructions>
 
+#let m4-enhanced = $
+  cal(M)_4^(phi, k) [f, g] := g compose "futu"(gamma_4^k)(phi) compose f in Mly(A, B)
+$
+
+#let m4-enhanced-coalg = $
+  gamma_4^k : #fltl4 -> frak(M)_(Σ, bb(B)_4)(Fre (#fltl4))
+$
+
 The three enhancements (@tab-constructions) are the three stacks of the final monitor that we name $cal(M)_4^(phi, k)$.
 Fix a formula $phi$, a horizon $k >= 1$, a pre-treatment $f : A -> Σ$ and a post-treatment
 $g : bb(B)_4 -> B$. The enhanced monitor is the profunctor:
-$
-  cal(M)_4^(phi, k) [f, g] := g compose "futu"(gamma_4^k)(phi) compose f in Mly(A, B)
-$
+#m4-enhanced
 unfolded from the single anticipating coalgebra
-$
-  gamma_4^k : #fltl4 -> frak(M)_(Σ, bb(B)_4)(Fre (#fltl4))
-$
+#m4-enhanced-coalg
 
 Each layer contributes one thing and nothing else:
 
