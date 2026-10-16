@@ -1,7 +1,7 @@
 import Mealy.TruthDomain.Core
 import Mealy.TruthDomain.B4
-import Mealy.Logic.Syntax
-import Mealy.Logic.Semantic.Denotation
+import Mealy.Logics.FLTL4.Syntax
+import Mealy.Logics.FLTL4.Semantic.Denotation
 import Mealy.Automata.Sequence
 
 variable {α : Type u} [DecidableEq α]

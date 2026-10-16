@@ -1,7 +1,7 @@
 import Mathlib.Data.PFunctor.Univariate.Basic
 import Mealy.TruthDomain.Core
 import Mealy.TruthDomain.B4
-import Mealy.Logic.Syntax
+import Mealy.Logics.FLTL4.Syntax
 
 variable (α : Type u) [DecidableEq α]
 

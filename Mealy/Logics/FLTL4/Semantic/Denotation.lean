@@ -3,7 +3,7 @@ import Mathlib.Data.Finset.Lattice.Fold
 import Mealy.TruthDomain.Core
 import Mealy.TruthDomain.B4
 
-import Mealy.Logic.Syntax
+import Mealy.Logics.FLTL4.Syntax
 
 variable {α} [DecidableEq α]
 
