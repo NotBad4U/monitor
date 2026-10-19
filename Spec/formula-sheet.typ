@@ -10,7 +10,7 @@
 #import "fltl4.typ": (
   b4-def, b4-order, b4-compl, b4-not-boolean-top, b4-not-boolean-bot,
   fltl4-syntax, fltl4-sem, fltl4-sem-sig,
-  mealy-tuple, mealy-delta, m4-tuple, m4-delta, m4-correct,
+  mealy-tuple, mealy-delta, m4-tuple, m4-delta, m4-run, m4-correct,
 )
 #import "enhanced-m4.typ": (
   mealy-coalg-map, mealy-coalg, mealy-hom,
@@ -73,6 +73,7 @@
 
 #entry([Mealy machine], side(mealy-tuple, mealy-delta))
 #entry([Monitor #M4], m4-tuple, m4-delta)
+#entry([Run of #M4], m4-run)
 #entry([Correctness], m4-correct)
 
 = Enhanced #M4

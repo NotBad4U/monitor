@@ -268,7 +268,7 @@ $
       edge(<rm>, <rg>, elbl($B$, caxis), "->", stroke: cgray + .6pt),
       edge(<rg>, <rn>, elbl($B'$, caxis), "->", stroke: cgray + .6pt),
       compbox((<rg>, <rn>), inset: 9pt),
-      node((5.5, 1.35), dtext(fill: cpurpDD, size: .76em)[$(m, n compose g)$]),
+      node((5.5, 1.35), dtext(fill: cpurpD, size: .76em)[$(m, n compose g)$]),
     ),
   ),
   caption: [

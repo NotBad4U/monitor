@@ -25,3 +25,5 @@
 .vscode
 dist-newstyle
 .DS_STORE
+
+tinymist.lock

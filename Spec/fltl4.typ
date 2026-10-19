@@ -335,12 +335,69 @@ we are now ready to define the monitor  #acr("FSM") #M4 computing the #fltl4 sem
 
 Following the characterization of #fltl4, we can etablish a correspondance between #fltl4 semantics and #acr("FSM") $cal(M)$.
 
-#let m4-correct = $
-  delta_4(s,u)_o = [ u tack.rr phi ]_4
+#let m4-run = $
+  delta_4^* (ϵ, phi) = (v_ϵ, phi) quad quad
+  delta_4^* (a, phi) = delta_4 (a, phi) quad quad
+  delta_4^* (a rho, phi) = delta_4^* (rho, delta_4 (a, phi)_s)
 $
 
-#theorem()[
-  Let $phi$ be an #fltl4 formula. Then there is an effective procedure constructing an FSM #m4-tuple such that for all $u ∈ Σ^*$ the following holds:
+#definition([Run of #M4], label: <def:m4-run>)[
+  Write $(-)_o$ and $(-)_s$ for the projections of $bb(B)_4 times S$ on the output and on the
+  state. The _run_ of #M4 is the map $delta_4^* : Σ^* times S -> bb(B)_4 times S$ defined by
+  induction on the word, for $a ∈ Σ$ and $rho ∈ Σ^+$:
+  #m4-run
+  so $delta_4^* (rho, phi)_o$ is the verdict emitted on the last letter of $rho$, and
+  $delta_4^* (rho, phi)_s$ the residual reached after it.
+]
+
+#todo(position: "inline")[Fix the verdict $v_ϵ$ emitted on the empty trace, together with $sem(ϵ tack.rr phi)$.]
+
+#let m4-correct = $
+  delta_4^* (rho, phi)_o = sem(rho tack.rr phi)
+$
+
+// the justification of a step in a chain of equalities
+#let why = body => text(size: .85em, fill: cgray)[(#body)]
+
+// a case of an induction, boxed
+#let icase = body => box(
+  stroke: .6pt + caxis,
+  inset: (x: .4em, y: .25em),
+  outset: (y: .1em),
+  radius: 2pt,
+  body,
+)
+
+#theorem([Correctness of #M4], label: <thm:m4-correct>)[
+  Let $phi$ be an #fltl4 formula in negation normal form. Then there is an effective procedure constructing an FSM #m4-tuple with $s_0 = phi$ such that for all $rho ∈ Σ^*$ the following holds:
   #m4-correct
-  with $(-)_o$ the projection of the output for $Gamma times S$.
+]
+#proof[
+By induction on $rho$.
+- #icase($rho = ϵ$) We have to show that $forall phi. #h(.2em) delta_4^* (ϵ, phi)_o = sem(ϵ tack.rr phi)$, that is $v_ϵ = sem(ϵ tack.rr phi)$ by @def:m4-run[-].
+- #icase($rho = a rho'$) #h(.4em) IH on $rho'$: $forall psi. #h(.2em) delta_4^* (rho', psi)_o = sem(rho' tack.rr psi)$. \ We have to prove that $forall phi. #h(.2em) delta_4^* (a rho', phi)_o = sem(a rho' tack.rr phi)$. \ We proceed by induction on $phi$:
+  
+- #icase($phi = "true"$) #h(.4em) We need to check that $delta_4^* (a rho', "true")_o = sem(a rho' tack.rr "true")$.
+  
+- #icase($phi = "false"$) #h(.4em) The task is to prove that $delta_4^* (a rho', "false")_o = sem(a rho' tack.rr "false")$.
+  
+- #icase($phi = p$) #h(.4em) We want to show that $delta_4^* (a rho', p)_o = sem(a rho' tack.rr p)$.
+  
+- #icase($phi = ¬ p$) #h(.4em) One must prove that $delta_4^* (a rho', ¬ p)_o = sem(a rho' tack.rr ¬ p)$.
+  
+- #icase($phi = psi_1 or psi_2$) #h(.4em) IH on $psi_1, psi_2$: $delta_4^* (a rho', psi_i)_o = sem(a rho' tack.rr psi_i)$ for $i = 1, 2$. \ We are to show that $delta_4^* (a rho', psi_1 or psi_2)_o = sem(a rho' tack.rr psi_1 or psi_2)$.
+  
+- #icase($phi = psi_1 and psi_2$) #h(.4em) IH on $psi_1, psi_2$: $delta_4^* (a rho', psi_i)_o = sem(a rho' tack.rr psi_i)$ for $i = 1, 2$. \ The obligation is $delta_4^* (a rho', psi_1 and psi_2)_o = sem(a rho' tack.rr psi_1 and psi_2)$.
+  
+- #icase($phi = bold(X) psi$) #h(.4em) IH on $psi$: $delta_4^* (a rho', psi)_o = sem(a rho' tack.rr psi)$. \ We need to show that $delta_4^* (a rho', bold(X) psi)_o = sem(a rho' tack.rr bold(X) psi)$.
+  
+- #icase($phi = overline(bold(X)) psi$) #h(.4em) IH on $psi$: $delta_4^* (a rho', psi)_o = sem(a rho' tack.rr psi)$. \ The statement to prove is $delta_4^* (a rho', overline(bold(X)) psi)_o = sem(a rho' tack.rr overline(bold(X)) psi)$.
+  
+- #icase($phi = psi_1 until psi_2$) #h(.4em) IH on $psi_1, psi_2$: $delta_4^* (a rho', psi_i)_o = sem(a rho' tack.rr psi_i)$ for $i = 1, 2$. \ We must show that $delta_4^* (a rho', psi_1 until psi_2)_o = sem(a rho' tack.rr psi_1 until psi_2)$.
+  
+- #icase($phi = psi_1 release psi_2$) #h(.4em) IH on $psi_1, psi_2$: $delta_4^* (a rho', psi_i)_o = sem(a rho' tack.rr psi_i)$ for $i = 1, 2$. \ This time the goal is $delta_4^* (a rho', psi_1 release psi_2)_o = sem(a rho' tack.rr psi_1 release psi_2)$.
+  
+- #icase($phi = bold(F) psi$) #h(.4em) IH on $psi$: $delta_4^* (a rho', psi)_o = sem(a rho' tack.rr psi)$. \ Here the claim is $delta_4^* (a rho', bold(F) psi)_o = sem(a rho' tack.rr bold(F) psi)$.
+  
+- #icase($phi = bold(G) psi$) #h(.4em) IH on $psi$: $delta_4^* (a rho', psi)_o = sem(a rho' tack.rr psi)$. \ Finally, we have to show that $delta_4^* (a rho', bold(G) psi)_o = sem(a rho' tack.rr bold(G) psi)$.
 ]

@@ -1,7 +1,6 @@
 #import "common.typ": *
 
 #show ref: theoretic.show-ref      // this is necessary for references to theorems to work
-#show ref: theoretic.show-ref      // this is necessary for references to theorems to work
 
 #set document(title: [Mealy: a #fltl4 monitor])
 
