@@ -6,7 +6,6 @@ variable (α : Type u) in
 variable (τ : Type v) [LE τ] in
 structure TimedTrace (n:Nat) where
   mk ::
-  -- seq : Vector (α × ℝ≥0∞) n
   seq : Vector (α × τ) n
   -- Explore why `_[_]` is more adapted for proof than `_.get _`.
   wff_seq : ∀ i j:Fin n, i < j -> seq[i].2 ≤ seq[j].2
