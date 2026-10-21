@@ -57,11 +57,15 @@ def TimedTrace.drop_off {α} {τ} [LE τ] {n : Nat} (t : TimedTrace α τ n) (j 
 
 -- Examples
 
+namespace Examples
+
 def ex1 : TimedTrace String Nat 2 :=
   TimedTrace.ofList [("a",1), ("a",2)] (by simp)
 
 def ex2 : TimedTrace String Nat 3 :=
   ex1.add ("a",2) (by simp [ex1, TimedTrace.ofList])
+
+end Examples
 
 -- Properties
 
