@@ -2,7 +2,7 @@ import Mathlib.Tactic.FinCases
 import Init.Data.Vector.Basic
 
 universe u v in
-variable (α : Type u) in
+variable (α : Type u) [DecidableEq α] in
 variable (τ : Type v) [LE τ] in
 structure TimedTrace (n:Nat) where
   mk ::
@@ -62,3 +62,11 @@ def ex1 : TimedTrace String Nat 2 :=
 
 def ex2 : TimedTrace String Nat 3 :=
   ex1.add ("a",2) (by simp [ex1, TimedTrace.ofList])
+
+-- Properties
+
+theorem add_last {α} [DecidableEq α] {τ} [LE τ] {n : Nat} :
+  ∀ t : TimedTrace α τ n, ∀ a : (α × τ), (h : ∀ b: Fin n, t.seq[b].2 ≤ a.2) →
+  (t.add a (by exact h)).last = a := by
+  intro t x
+  simp [TimedTrace.add, TimedTrace.last, Vector.push, Array.push]
