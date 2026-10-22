@@ -96,13 +96,116 @@ def final : φ α → List α → 𝔹₄
   | f, a :: b :: w => final (δ a f).2 (b :: w)
 
 -- 𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩) ⋀ 𝑮 (~ ⟨"c"⟩)
-private def fltl4prop := ((𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩)))
+private def ex := ((𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩)))
 
-#eval run fltl4prop ["a", "a", "b", "b"]
-#eval final fltl4prop ["a", "a", "b", "b"] -- ⊤ₚ
+#eval run ex ["a", "a", "b", "b"]
+#eval final ex ["a", "a", "b", "b"] -- ⊤ₚ
 
 /-
   Correctness of the Mealy's machine transition function w.r.t. the denotational semantics
 -/
 theorem eq_verdict_δ_sem : ∀ (w : List α) (f : φ α), sem w f = final f w := by
   sorry
+
+/-
+  type: ∏ (s : S), ∏ (i : I(s)), Σ (o : O(s, i)), S
+
+  where:
+  * S is the type of states;
+  * I is the type of valid inputs;
+  * and O is the output type.
+-/
+structure MealyNoDep (I : Type u) (O : Type v) where
+  S : Type u
+  init  : S
+  app  : S → I → O × S -- ≃ S × I → O × S that you can find in the litterature
+
+/--
+  Mealy machine monitoring FLTL4 formula (`f`: φ α) denoting φ α × α → 𝔹₄ × φ α
+-/
+def MealyNoDep.from (f : φ α) : MealyNoDep α 𝔹₄ where
+  S := φ α
+  init := f
+  app s a := δ a s
+
+private def ex_meal := MealyNoDep.from ex
+
+#eval (ex_meal.app (MealyNoDep.from ex).init "c").1 -- ⊥
+
+/-
+  Bisimulation between Mealy machines `m₁` and `m₂` with the same inputs and outputs:
+
+                i / o
+          s₁ ───────────► s₁'          (o, s₁') = m₁.app s₁ i
+          │               │
+        R │               │ R
+          │               │
+          s₂ ───────────► s₂'          (o, s₂') = m₂.app s₂ i
+                i / o
+-/
+structure MealyNoDep.Bisim {I : Type} {O : Type} (m₁ m₂ : MealyNoDep I O) where
+  R       : m₁.S → m₂.S → Prop
+  init_ok : R m₁.init m₂.init
+  app_ok  : ∀ s₁ s₂, R s₁ s₂ → ∀ i,
+              (m₁.app s₁ i).1 = (m₂.app s₂ i).1 ∧ R (m₁.app s₁ i).2 (m₂.app s₂ i).2
+
+-- `m₁ ≈ m₂` is a bisimulation between `m₁` and `m₂`.
+instance MealyNoDepEquiv {I : Type} {O : Type} : HasEquiv (MealyNoDep I O) := ⟨MealyNoDep.Bisim⟩
+
+/-
+  type: ∏ (s : S), ∏ (i : I(s)), Σ (o : O(s, i)), S
+
+  where:
+  * S is the type of states;
+  * I(s) is the type of valid inputs in state s;
+  * O(s, i) is the output type, depending on the current state and input.
+-/
+structure MealyDep where
+  S    : Type u
+  I    : S → Type v
+  O    : (s : S) → I s → Type w
+  init : S
+  app : (s : S) → (i : I s) → (O s i × S)
+
+-- NOTE: I do not know if it usefull
+def MealyDep.from (f : φ α) : MealyDep where
+  S := φ α
+  I := (fun _ => α)
+  O := (fun _ _ => 𝔹₄)
+  init := f
+  app s a := δ a s
+
+private def ex_mealD := MealyDep.from ex
+
+#eval (ex_mealD.app ex_mealD.init "c").1 -- ⊥
+
+
+def MealyNoDep.toDep {I : Type} {O : Type} (m : MealyNoDep I O) : MealyDep where
+  S := m.S
+  I := (fun _ => I)
+  O := (fun _ _ => O)
+  init := m.init
+  app := m.app
+
+/-
+  Idea come from §6 of "Compositional Program Verification with Polynomial Functors in Dependent Type Theory"
+
+  type: Σ (Inv : S → Prop), Inv(init) ∧ Π s, Inv(s) → Π i, Pre(i) → Post(i, o) ∧ Inv(s')
+
+  A machine `m` together with an inductive invariant `Inv` on its states:
+  * Pre(i) is the precondtion on the inputs;
+  * Post(i, o) is postcondition on the output produced when reading input i;
+  * Inv(s) is a state invariant.d
+-/
+structure MealyInv
+    {I : Type u} {O : Type v}
+    (m : MealyNoDep I O)
+    (Pre : I → Prop)
+    (Post : I → O → Prop) where
+  Inv : m.S → Prop
+  init_ok : Inv m.init
+  app_ok :
+    ∀ (s : m.S), Inv s →
+    ∀ (i : I), Pre i →
+      Post i (m.app s i).1 ∧
+      Inv (m.app s i).2

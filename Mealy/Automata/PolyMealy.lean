@@ -1,170 +1,116 @@
+/-
+  Mealy machines as coalgebras.
+
+  Follows C.B. Aberlé, "Compositional Program Verification with Polynomial Functors in
+  Dependent Type Theory" (arXiv:2604.01303). Lean has no coinductive records, so the
+  coinductive `Mealy` and `DepMealy` of the paper are presented with an explicit state.
+-/
 import Mathlib.Data.PFunctor.Univariate.Basic
 import Mealy.TruthDomain.Core
 import Mealy.TruthDomain.B4
 import Mealy.Logics.FLTL4.Syntax
+import Mealy.Automata.Mealy
 
-variable (α : Type u) [DecidableEq α]
+variable {α : Type u} [DecidableEq α]
 
--- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/PFunctor/Univariate/Basic.html
---
--- paramorphism algebra, also called an R-algebra
---
---                      In
---       F (φ α)  ───────────────►  φ α
---          │                        │
---          │                        │
---  F ⟨id, fold t⟩                fold t
---          │                        │
---          ▼                        ▼
---   F (φ α × (𝔹₄ × φ α)) ──────► (𝔹₄ × φ α)
---                           t
---
+/-
+  Polynomial functors
 
--- Invariant checker
-structure  mealyEff (m: Type → Type) (State: Type) (p : PFunctor)  where
-  delta : (a: p.A) → State → m (State × p.B a)
+      P(X) = Σ (a : A), X^(B(a))
 
-def TransType {α} : φ α → Type (u + 1)
-  | .true | .false | .ap _  | .next _ | .weak_next _ => 𝔹₄ × φ α
-  | .not _ | .globally _ | .finally _ => (𝔹₄ × φ α) → 𝔹₄ × φ α -- (𝔹₄ × φ α) → (𝔹₄ × φ α)
-  | .and _ _ | .or _ _ | .until _ _ | .release _ _ => (𝔹₄ × φ α) × (𝔹₄ × φ α) → 𝔹₄ × φ α
+  To follow more the litterature, Mathlib's `PFunctor` is named `Poly` here.
+-/
+abbrev Poly.{a, b} := PFunctor.{a, b}
 
-def fold (t: (i: φ α) → TransType i) : φ α →  𝔹₄ × φ α
-  | .true => t .true
-  | .false => t .false
-  | .ap a => t (.ap a)
-  | .next a => t (.next a)
-  | .weak_next a => t (.weak_next a)
-  | .not a => t (.not a) (fold t a)
-  | .or a b => t (.or a b) (fold t a , fold t b)
-  | .and a b => t (.and a b) (fold t a , fold t b)
-  | .until a b => t (.until a b) (fold t a , fold t b)
-  | .release a b => t (.release a b) (fold t a , fold t b)
-  | .globally a => t (.globally a) (fold t a)
-  | .finally a => t (.finally a) (fold t a)
+/-
+  Dependent polynomial over Poly p = (A, B) (§ 5.1):
 
+      DepPoly (A , B) = Σ (C : A → Set), (a : A) → C(a) → B(a) → Set
 
-def alg {α} [DecidableEq α] (a : α) : (state: φ α) → TransType state
-  | .true => (⊤, .true)
-  | .false => (⊥, .false)
-  | .ap p => if p = a then (⊤, .true) else (⊥, .false)
-  | .next p => (⊥ₚ, p)
-  | .weak_next p => (⊤ₚ, p)
-  | .not _ => fun (b, t) => (bᶜ, t)
-  | .or _ _ => fun ((b1, t1),(b2 ,t2)) => (b1 ⊓ b2, .or t1 t2) -- nrm to be injected here
-  | .and _ _ => fun ((b1, t1),(b2 ,t2)) => (b1 ⊔ b2, .and t1 t2) -- nrm to be injected here
-  | .until _ _ => fun ((b1, t1),(b2 ,t2)) => (b1 ⊓ b2, .and t1 (.next (.until t1 t2))) -- nrm to be injected here
-  | .release _ _ => fun ((b1, t1),(b2 ,t2)) => (b1 ⊔ b2, .or t1 (.weak_next (.release t1 t2))) -- nrm to be injected here
-  | .finally _ => fun (b, t) => (b, .and t (.next (.finally t)))
-  | .globally _ => fun (b, t) => (b, .or t (.weak_next (.globally t)))
+  where:
+  * Pre(a) is the precondition on the input a;
+  * Post(a, c, b) is the postcondition on the output b, given evidence c that Pre(a) holds.
+-/
+structure DepPoly (p : Poly) where
+  Pre  : p.A → Type
+  Post : (a : p.A) → Pre a → p.B a → Type
 
---                     head constructor of f
---     φ α^ⁿ  ─────────────────────────────────►  φ α
---  (f₁, …, fₙ)                                    f
---       │                                         │
---       │ fold r × … × fold r                     │ fold r
---       ▼                                         ▼
---    (𝔹₄ × φ α)^ⁿ  ────────────────────────►  (𝔹₄ × φ α)
---                         r f
---              : TransType α f  =  (𝔹₄ × φ α)^ⁿ → (𝔹₄ × φ α)
+/-
+  Mealy machine with interface p = (A, B) (Definition 4.1 of the paper):
 
--- def transitionPF  : PFunctor where
---   A := φ α
---   B := fun state => TransType state
+      app : ∏ (s : S), ∏ (a : A), B(a) × S
 
--- structure  mealyDep (Input: Type) (Output: Type) (p : PFunctor)  where
---   delta : (a: p.A) → Input → Output × p.B a
+  where:
+  * S is the type of states, and state is the current one;
+  * A is the type of inputs;
+  * B(a) is the output type, depending on the input a.
+-/
+structure Mealy (p : Poly) where
+  S     : Type a
+  state : S
+  app   : S → (a : p.A) → p.B a × S
 
--- -- def fold (t: (i: φ α) → TransType i) : φ α →  𝔹₄ × φ α
--- -- def alg {α} [DecidableEq α] (a : α) : (i: φ α) → TransType i
--- def Monitor {α:Type _}  [DecidableEq α]: mealyDep α 𝔹₄ (transitionPF α) where
---   delta x s := fold (alg s) x
+def Mealy.ofδ (f : φ α) : Mealy ⟨α, fun _ => 𝔹₄⟩ where
+  S := φ α
+  state := f
+  app s (a : α) := δ a s
+
+-- Read an input `a` and output `o: p.B a` and the machine in its next state.
+def Mealy.step {p : Poly} (m : Mealy p) (a : p.A) : p.B a × Mealy p :=
+  ((m.app m.state a).1, { m with state := (m.app m.state a).2 })
+
+def runMealyPoly {p : Poly} (m : Mealy p) : m.S → List p.A → List ((a : p.A) × p.B a)
+  | _, [] => []
+  | s, a :: w => ⟨a, (m.app s a).1⟩ :: runMealyPoly m (m.app s a).2 w
+
+/-
+  Bisimulation between Mealy machines `m1` and `m2` with the same interface `p`:
+
+                a / o
+          s₁ ───────────► s₁'          (o, s₁') = m1.app s₁ a
+          │               │
+        R │               │ R
+          │               │
+          s₂ ───────────► s₂'          (o, s₂') = m2.app s₂ a
+                a / o
+-/
+structure Mealy.Bisim {p : Poly} (m1 m2 : Mealy p) where
+  R : m1.S → m2.S → Prop
+  state_ok : R m1.state m2.state
+  app_ok : ∀ s₁ s₂, R s₁ s₂ → ∀ a,
+            (m1.app s₁ a).1 = (m2.app s₂ a).1 ∧ R (m1.app s₁ a).2 (m2.app s₂ a).2
+
+-- `m1 ≈ m2` is a bisimulation between `m1` and `m2`.
+instance MealyEquiv {p : Poly} : HasEquiv (Mealy p) := ⟨Mealy.Bisim⟩
 
 
+private def m0 := Mealy.ofδ ((𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩)))
+private def m2 := ((m0.step "a").2.step "a").2
+#eval (m0.step "a").1  -- ⊥ₚ
+#eval (m2.step "b").1  -- ⊤ₚ
 
--- -- def fold (t: (i: φ α) → TransType i) : φ α →  𝔹₄ × φ α
--- -- def alg {α} [DecidableEq α] (a : α) : (i: φ α) → TransType i
--- def MonitorS {α:Type _}  [DecidableEq α]: mealyDepS α 𝔹₄ (transitionPF α) where
---   delta x s := fold (alg s) x
+/-
+  Dependent Mealy machine for the specification (p, r) over the Mealy machine m (§ 6.1):
 
-structure  mealyDep (State: Type v) (p : PFunctor)  where
-  delta : (a: p.A) → State →  State × p.B a
+      appD : ∏ (a : A), ∏ (c : Pre(a)), Post(a, c, o) × DepMealy p r m'
+             where (o, m') = app(a)
 
--- 𝛿 : (i: Σ) * (s: 𝑆) → ∃ s'.
--- delta : (s : φ a) → (i: α) → δ₄ (s i)
+  An invariant `Inv` on the states of `m`:
+  it holds in the current state, and from a state satisfying it, any input satisfying `Pre`
+  produces an output satisfying `Post` and leads to a state satisfying `Inv` again.
+-/
+structure DepMealy (p : Poly) (r : DepPoly p) (m : Mealy p) where
+  Inv      : m.S → Prop
+  state_ok : Inv m.state
+  appD     : (s : m.S) → Inv s → (a : p.A) → (c : r.Pre a) →
+               r.Post a c (m.app s a).1 ×' Inv (m.app s a).2
 
--- Polynomial functor of the 𝔹₄ monitor: reads a letter `a : α`, emits a verdict in `𝔹₄`
-def monitorPF : PFunctor where
-  A := α
-  B := fun _ => 𝔹₄
-
-def δ₄ {α} [DecidableEq α] (a : α) : φ α → 𝔹₄ × φ α :=
-  fold α (alg a)
-
--- The monitor `M₄` as a `mealyDep`: states are residual formulae
-def M₄ : mealyDep (φ α) (monitorPF α) where
-  delta a s := (δ₄ (α := α) a s).swap
-
-def prop : φ String := 𝑭 ⟨"a"⟩
-
--- Mealy machine whose interface (inputs and outputs) depends on the current state
-structure mealyDepS (State : Type v) (p : State → PFunctor) where
-  delta : (s : State) → (a : (p s).A) → State × (p s).B a
-
--- A state is decided once its residual is a constant
-def decided : φ α → Bool
-  | .true | .false => true
-  | _ => false
-
--- Undecided states read letters, decided states read nothing
-def statePF (s : φ α) : PFunctor where
-  A := { _a : α // decided α s = false }
-  B := fun _ => 𝔹₄
-
-def M₄S : mealyDepS (φ α) (statePF α) where
-  delta s a := (δ₄ a.1 s).swap
-
--- A decided state has no input: the monitor cannot step after a final verdict
-example (a : (statePF α .true).A) : False := by
-  cases a with | mk _ h => cases h
-
--- Runs `M₄S` over a trace, stopping as soon as the residual is decided
-def runS (f : φ String) : List String → List 𝔹₄
-  | [] => []
-  | a :: w =>
-    if h : decided String f = false then
-      let (f', v) := (M₄S String).delta f ⟨a, h⟩
-      v :: runS f' w
-    else []
-
--- Mealy machine whose next state's type depends on the current state and the input
-structure mealyIdx (I : Type v) (S : I → Type w) (p : I → PFunctor) where
-  next : (i : I) → (p i).A → I
-  delta : {i : I} → S i → (a : (p i).A) → S (next i a) × (p i).B a
-
-section Indexed
-
-variable {α}
-
--- Residual reached from `φ₀` after reading `w`
-def after (φ₀ : φ α) (w : List α) : φ α :=
-  w.foldl (fun f a => (δ₄ a f).2) φ₀
-
--- States indexed by a residual `f`: the traces from `φ₀` that lead to `f`
-def Trace (φ₀ : φ α) (f : φ α) : Type u :=
-  { w : List α // after φ₀ w = f }
-
-end Indexed
-
-def M₄I (φ₀ : φ α) : mealyIdx (φ α) (Trace φ₀) (fun _ => monitorPF α) where
-  next f (a : α) := (δ₄ a f).2
-  delta := fun {f} ⟨w, h⟩ (a : α) => (⟨w ++ [a], by subst h; simp [after]⟩, (δ₄ a f).1)
-
--- Runs `M₄I` from `φ₀`, starting with the empty trace
-def runI (φ₀ : φ String) : {f : φ String} → Trace φ₀ f → List String → List 𝔹₄
-  | _, _, [] => []
-  | _, s, a :: w =>
-    let (s', v) := (M₄I String φ₀).delta s a
-    v :: runI φ₀ s' w
-
--- #eval runI (⟨"a"⟩ 𝑼 ⟨"b"⟩) ⟨[], rfl⟩ ["a", "a", "b"]
+/-- One step of a verified machine: the postcondition, and the verified machine in its next state. -/
+def DepMealy.step {p : Poly} {r : DepPoly p} {m : Mealy p}
+    (d : DepMealy p r m) (a : p.A) (c : r.Pre a) :
+    r.Post a c (m.step a).1 ×' DepMealy p r (m.step a).2 :=
+  let h := d.appD m.state d.state_ok a c
+  ⟨h.1,
+   { Inv      := d.Inv
+     state_ok := h.2
+     appD     := d.appD }⟩
