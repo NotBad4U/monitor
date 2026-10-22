@@ -201,4 +201,4 @@ lemma eq_sem_G_with_R (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w �
   simp only [sem]
   simp [inf_comm]
 
-theorem norm_equiv (w : List α) (f : φ α) : ⟦ w ⊨ norm f ⟧ = ⟦ w ⊨ f ⟧ := by sorry
+theorem simplify_equiv (w : List α) (f : φ α) : ⟦ w ⊨ simplify f ⟧ = ⟦ w ⊨ f ⟧ := by sorry
