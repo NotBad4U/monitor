@@ -5,7 +5,7 @@ variable (α : Type u) [DecidableEq α]
 /--
   FLTL algebraic data type
 -/
-inductive φ : Type (u + 1) where
+inductive φ : Type u where
   | true : φ
   | false : φ
   | ap : α → φ
