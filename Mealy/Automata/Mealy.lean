@@ -3,6 +3,7 @@ import Mealy.TruthDomain.B4
 import Mealy.Logics.FLTL4.Syntax
 import Mealy.Logics.FLTL4.Semantic.Denotation
 import Mealy.Automata.Sequence
+import Mathlib.CategoryTheory.Category.Basic
 
 variable {α : Type u} [DecidableEq α]
 
@@ -209,3 +210,39 @@ structure MealyInv
     ∀ (i : I), Pre i →
       Post i (m.app s i).1 ∧
       Inv (m.app s i).2
+
+namespace MealyCategory
+
+/-
+         i / o
+   s ───────────► s'
+   │              │
+ map              map
+   │              │
+   ▼              ▼
+ map s ─────────► map s'
+         i / o
+-/
+structure MealyNoDep.Hom {I : Type u} {O : Type v} (X Y : MealyNoDep I O) where
+  map: X.S → Y.S
+  map_init: map X.init = Y.init
+  map_out : ∀ s i, (Y.app (map s) i).1 = (X.app s i).1
+  map_next : ∀ s i, (Y.app (map s) i).2 = map (X.app s i).2
+
+def MealyNoDep.Id  {I : Type u} {O : Type v} (X : MealyNoDep I O) : MealyNoDep.Hom X X  where
+  map := id
+  map_init := by rfl
+  map_out := by grind
+  map_next := by grind
+
+instance MealyNoDepCat (I : Type u) (O : Type v) : CategoryTheory.Category (MealyNoDep I O) where
+  Hom X Y := MealyNoDep.Hom X Y
+  id X := MealyNoDep.Id X
+  comp f g :=
+    { map := g.map ∘ f.map
+      map_init := by simp [f.map_init, g.map_init]
+      map_out := fun s i => by simp [f.map_out, g.map_out]
+      map_next := fun s i => by simp [f.map_next, g.map_next] }
+  id_comp _ := rfl
+  comp_id _ := rfl
+  assoc _ _ _ := rfl

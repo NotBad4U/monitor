@@ -45,7 +45,7 @@ prefix:100 "𝑮 " => φ.globally
 
 notation "⟨ " e " ⟩" => φ.ap e
 
-notation:130 a " ⟶ " b => (~ a) ⋁ b
+notation:130 (name := φ.impl) a " ⟶ " b => (~ a) ⋁ b
 
 /--
   Some basic examples
