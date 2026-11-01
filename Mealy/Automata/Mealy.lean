@@ -4,6 +4,7 @@ import Mealy.Logics.FLTL4.Syntax
 import Mealy.Logics.FLTL4.Semantic.Denotation
 import Mealy.Automata.Sequence
 import Mathlib.CategoryTheory.Category.Basic
+import Mathlib.CategoryTheory.Profunctor.Basic
 
 variable {α : Type u} [DecidableEq α]
 
@@ -223,19 +224,19 @@ namespace MealyCategory
  map s ─────────► map s'
          i / o
 -/
-structure MealyNoDep.Hom {I : Type u} {O : Type v} (X Y : MealyNoDep I O) where
+structure MealyNoDep.Hom {I : Type} {O : Type} (X Y : MealyNoDep I O) where
   map: X.S → Y.S
   map_init: map X.init = Y.init
   map_out : ∀ s i, (Y.app (map s) i).1 = (X.app s i).1
   map_next : ∀ s i, (Y.app (map s) i).2 = map (X.app s i).2
 
-def MealyNoDep.Id  {I : Type u} {O : Type v} (X : MealyNoDep I O) : MealyNoDep.Hom X X  where
+def MealyNoDep.Id  {I : Type} {O : Type} (X : MealyNoDep I O) : MealyNoDep.Hom X X  where
   map := id
   map_init := by rfl
   map_out := by grind
   map_next := by grind
 
-instance MealyNoDepCat (I : Type u) (O : Type v) : CategoryTheory.Category (MealyNoDep I O) where
+instance MealyNoDepCat (I : Type) (O : Type) : CategoryTheory.Category (MealyNoDep I O) where
   Hom X Y := MealyNoDep.Hom X Y
   id X := MealyNoDep.Id X
   comp f g :=
@@ -246,3 +247,82 @@ instance MealyNoDepCat (I : Type u) (O : Type v) : CategoryTheory.Category (Meal
   id_comp _ := rfl
   comp_id _ := rfl
   assoc _ _ _ := rfl
+
+/-
+  A heteromorphism between two Mealy machines `X : Mealy I1 O1` and `Y : Mealy I2 O2`
+  is a state map `map : Y.S → X.S` together with a pre-composition and a post-composition:
+  * `lmap : I1 → I2` translates every input of `X` into an input of `Y`;
+  * `rmap : O2 → O1` translates every output of `Y` into an output of `X`.
+
+        ┌───────────────────── X : Mealy I1 O1 ────────────────────────────┐
+        │                                                                  │
+        │  ┌──────┐         ┌────────────────────────┐         ┌──────┐    │
+  ──────┼─►│ lmap ├────────►│  Y : Mealy I2 O2       ├────────►│ rmap ├────┼──────►
+   I1   │  └──────┘   I2    └────────────────────────┘    O2   └──────┘    │   O1
+        │                                                                  │
+        │                                                                  │
+        └──────────────────────────────────────────────────────────────────┘
+
+  and should respect the universal properties that the outputs agree:
+  `(X.app s i).1 = rmap (Y.app (map s) (lmap i)).1`
+  and the next states agree:
+  `map (X.app s i).2 =  (Y.app (map s) (lmap i)).2`
+
+  The following commutative diagram illustrates the universal properties:
+
+                map × lmap
+  X.S × I1 ───────────────► Y.S × I2
+      │                         │
+    X.app                     Y.app
+      │                         │
+      ▼                         ▼
+  O1 × X.S ◄─────────────── O2 × Y.S
+                rmap × map
+
+
+-/
+
+-- For a profunctor `H : Cᵒᵖ × D ⥤ Type`, `d ∈ D` and `c ∈ C`, the set `Hom(d, c)`
+-- is also called the set of heteromorphisms from `d` to `c`.
+-- source: https://ncatlab.org/nlab/show/profunctor
+structure MealyNoDep.Het {I1 I2 : Type} {O1 O2 : Type}
+    (lmap : I1 → I2) (rmap : O2 → O1) (X : MealyNoDep I1 O1) (Y : MealyNoDep I2 O2)  where
+  map : X.S → Y.S
+  map_init : map X.init = Y.init
+  output_agree: forall s i, (X.app s i).1 = rmap (Y.app (map s) (lmap i)).1
+  next_state_agree: forall s i, map (X.app s i).2 =  (Y.app (map s) (lmap i)).2
+
+/--
+  The profunctor `MealyNoDep I2 O2 ⥤ (MealyNoDep I1 O1)ᵒᵖ ⥤ Type` of heteromorphisms
+  over the fixed wiring `(f, g)`.
+
+  * Object are `Het f g X Y`: `Y`
+  * `map ψ φ` transports a heteromorphism along machine morphisms with `φ : X ⟶ X'` and `ψ : Y ⟶ Y'`:
+
+      ┌──── X' ────┐                    ┌──── X ────┐
+      │  ┌── Y ──┐ │     map ψ φ        │  ┌─ Y' ─┐ │
+      │  └───────┘ │  ──────────────►   │  └──────┘ │
+      └────────────┘                    └───────────┘
+       h : Het X' Y                      Het X Y'
+
+    on states:  X.S ──φ.map──► X'.S ──h.map──► Y.S ──ψ.map──► Y'.S
+-/
+def MealyNoDepProfunctor {I1 I2 : Type} {O1 O2 : Type} (f : I1 → I2) (g : O2 → O1) :
+  CategoryTheory.Profunctor (MealyNoDep I2 O2) (MealyNoDep I1 O1) :=
+  CategoryTheory.Profunctor.ofCore
+    { obj Y X := MealyNoDep.Het f g X Y
+      map ψ φ := TypeCat.ofHom fun h =>
+        { map := ψ.map ∘ h.map ∘ φ.map -- composition of state maps such that Y.S →^* X'.S
+          map_init := by simp [φ.map_init, h.map_init, ψ.map_init]
+          output_agree := by
+            intros
+            simp only [Function.comp]
+            rw [ψ.map_out, ← h.output_agree, φ.map_out]
+          next_state_agree := by
+            intros
+            simp only [Function.comp]
+            rw [ψ.map_next, ← h.next_state_agree, φ.map_next]
+        }
+      map_id := fun X Y => rfl
+      map_comp := fun X Y A B => rfl
+    }
