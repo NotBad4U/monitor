@@ -5,6 +5,7 @@ import Mealy.Logics.FLTL4.Semantic.Denotation
 import Mealy.Automata.Sequence
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Profunctor.Basic
+import Mathlib.CategoryTheory.Endofunctor.Algebra
 
 variable {α : Type u} [DecidableEq α]
 
@@ -75,6 +76,10 @@ def δ : α → φ α → 𝔹₄ × φ α
   | a, 𝑮 f =>
     let (vf, f') := δ a f
     (vf ⊓ ⊤ₚ, f' ⋀ (𝑮 f))
+
+-- Using ε for our Mealy machine transform the machine into a Moore machine
+lemma δ_fst_eq_ε (a : α) (f : φ α) : (δ a f).1 = ε (δ a f).2 := by
+  fun_induction δ a f <;> simp_all [ε]
 
 /--
   Run the Mealy machine on a finite trace: starting from formula `f`, feed the
@@ -213,6 +218,7 @@ structure MealyInv
       Inv (m.app s i).2
 
 namespace MealyCategory
+open CategoryTheory
 
 /-
          i / o
@@ -326,3 +332,25 @@ def MealyNoDepProfunctor {I1 I2 : Type} {O1 O2 : Type} (f : I1 → I2) (g : O2 �
       map_id := fun X Y => rfl
       map_comp := fun X Y A B => rfl
     }
+
+/-
+  Mealy machines are coalgebras of the endofunctor `μF S = I → O × S`
+-/
+
+-- μF S = I → O × S
+def μF.MealyNoDep (I O : Type) : Type ⥤ Type where
+  obj S := I → O × S
+  map f := TypeCat.ofHom fun t i => ((t i).1, f ((t i).2))
+
+def MealyNoDep.toCoalg {I O : Type} (m : MealyNoDep I O) :
+    Endofunctor.Coalgebra (μF.MealyNoDep I O) where
+  V := m.S
+  str := TypeCat.ofHom m.app
+
+def MealyNoDep.Hom.toCoalgHom {I O : Type} {X Y : MealyNoDep I O}
+    (h : MealyNoDep.Hom X Y) : MealyNoDep.toCoalg X ⟶ MealyNoDep.toCoalg Y where
+  f := TypeCat.ofHom h.map
+  h := by
+    ext s
+    funext i
+    exact Prod.ext (h.map_out s i).symm (h.map_next s i).symm
