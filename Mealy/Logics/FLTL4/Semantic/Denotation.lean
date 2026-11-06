@@ -3,7 +3,7 @@ import Mathlib.Data.Finset.Lattice.Fold
 import Mealy.TruthDomain.Core
 import Mealy.TruthDomain.B4
 
-import Mealy.Logic.Syntax
+import Mealy.Logics.FLTL4.Syntax
 
 variable {α} [DecidableEq α]
 
@@ -200,3 +200,5 @@ lemma eq_sem_F_with_U (w : List α) (f : φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w �
 lemma eq_sem_G_with_R (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ .false 𝑹 f ⟧ := by
   simp only [sem]
   simp [inf_comm]
+
+theorem simplify_equiv (w : List α) (f : φ α) : ⟦ w ⊨ simplify f ⟧ = ⟦ w ⊨ f ⟧ := by sorry
