@@ -9,6 +9,8 @@ import Mathlib.CategoryTheory.Endofunctor.Algebra
 
 variable {α : Type u} [DecidableEq α]
 
+open FLTL4
+
 /--
   Verdict of a formula on the empty trace, i.e. `⟦ [] ⊨ f ⟧`
 -/
@@ -29,10 +31,9 @@ def ε : φ α → 𝔹₄
 --
 lemma sem_nil (f : φ α) : sem [] f = ε f := by
   induction f with
-  | not f ih => rw [sem_not_eq_compl_sem, ih]; rfl
+  | not f ih => rw [sem_not_eq_compl_sem, ε, ih]
   | ap => simp [sem, ε, lookup]
   | _ => simp_all [sem, ε]
-
 
 /--
   Transition: reading event `a` in state `f` outputs the verdict on the trace
@@ -49,11 +50,11 @@ def δ : α → φ α → 𝔹₄ × φ α
   | a, f ⋁ g =>
     let (vf, f') := δ a f
     let (vg, g') := δ a g
-    (vf ⊔ vg, f' ⋁ g')
+    (vf ⊔ vg, nrm $ f' ⋁ g')
   | a, f ⋀ g =>
     let (vf, f') := δ a f
     let (vg, g') := δ a g
-    (vf ⊓ vg, f' ⋀ g')
+    (vf ⊓ vg, nrm $ f' ⋀ g')
   | _, 𝑿 f  => (ε f, f)
   | _, X̅ f => (ε f, f)
   -- f U g  ≡  g ∨ (f ∧ X (f U g))
@@ -77,10 +78,6 @@ def δ : α → φ α → 𝔹₄ × φ α
     let (vf, f') := δ a f
     (vf ⊓ ⊤ₚ, f' ⋀ (𝑮 f))
 
--- Using ε for our Mealy machine transform the machine into a Moore machine
-lemma δ_fst_eq_ε (a : α) (f : φ α) : (δ a f).1 = ε (δ a f).2 := by
-  fun_induction δ a f <;> simp_all [ε]
-
 /--
   Run the Mealy machine on a finite trace: starting from formula `f`, feed the
   events one by one to `δ`, emitting after each event the verdict together with
@@ -95,12 +92,21 @@ def run : φ α → List α → List (𝔹₄ × φ α)
 /--
   Verdict of the last step of `run`, i.e. the verdict on the whole trace.
   On the empty trace no event is read, so the verdict is `ε f`.
-  QUESTION: should we combine use un in combine ? Proof will be affected.
+  QUESTION: should we combine use run in combine ? Proof will be affected.
 -/
+
+def final : φ α → List α → 𝔹₄
+  | f, [] => ε f
+  | f, a :: w => final (δ a f).2 w
+
+/--
 def final : φ α → List α → 𝔹₄
   | f, [] => ε f
   | f, [a] => (δ a f).1
   | f, a :: b :: w => final (δ a f).2 (b :: w)
+-/
+
+--  ε ((δ a f).2) =? (δ a f).1
 
 -- 𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩) ⋀ 𝑮 (~ ⟨"c"⟩)
 private def ex := ((𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩)))
@@ -111,8 +117,140 @@ private def ex := ((𝑮 (⟨"a"⟩ 𝑼 ⟨"b"⟩)) ⋀ (𝑮 (~ ⟨"c"⟩)))
 /-
   Correctness of the Mealy's machine transition function w.r.t. the denotational semantics
 -/
-theorem eq_verdict_δ_sem : ∀ (w : List α) (f : φ α), sem w f = final f w := by
-  sorry
+lemma eq_verdict_δ_sem_nil : ∀ (f : φ α), sem [] f = final f [] := by
+  intro f
+  simp [sem_nil, final]
+
+lemma eq_verdict_δ_sem_cons_top : ∀ (w : List α), ⊤ = final φ.true w := by
+  intro w
+  induction w with
+  | nil => simp [final, ε]
+  | cons h' t ih => simp [final,δ, ih]
+
+lemma eq_verdict_δ_sem_cons_bot : ∀ (w : List α), ⊥ = final φ.false w := by
+  intro w
+  induction w with
+  | nil => simp [final, ε]
+  | cons h' t ih => simp [final, δ, ih]
+
+lemma eq_final_neg_neg_final : ∀ w : List α, ∀ f : φ α, (final f w)ᶜ = final (~ f) w := by
+  intro w
+  induction w with
+  | nil => simp [final, ε]
+  | cons h t ih =>
+    intro f
+    cases f with
+    | ap p =>
+      by_cases hp : h = p <;> simp [final, δ, hp, ← eq_verdict_δ_sem_cons_top t, ← eq_verdict_δ_sem_cons_bot t]
+    | _ => simp [final, δ, ih]
+
+lemma eq_esp_nrm_eps (f : φ α) : ε (nrm f) = ε f := by
+  induction f with
+  | true | false | ap _ => simp [nrm]
+  | not f ih =>
+    simp only [nrm]
+    split
+    · rename_i h; rw [h] at ih; simp [ε, ← ih]
+    · rename_i h; rw [h] at ih; simp [ε, ← ih]
+    · simp [ε, ih]
+  | and l r hl hr | or l r hl hr =>
+    simp only [nrm]
+    split <;> (try split_ifs) <;> simp_all [ε] <;> rw [← hl, ← hr] <;> simp [le_top]
+  | next f _ | weak_next f _ => simp [nrm, ε]
+  | «until» l r _ _ | release l r _ _ => simp [nrm, ε]
+  | globally f _ | «finally» f _ => simp [nrm, ε]
+
+lemma eq_delta_nrm_delta (r:α) (f : φ α) : (δ r (nrm f)).2 = nrm (δ r f).2 := by
+  induction f with
+  | true | false => simp [nrm, δ]
+  | ap a =>
+    by_cases ha : a = r <;> simp [*, δ, nrm] ; split_ifs <;> simp [nrm]
+  | not f' hf => sorry
+  | and l r hl hr | or l r hl hr => sorry
+  | next f _ | weak_next f _ => simp [nrm, δ]
+  | «until» l r _ _ | release l r _ _ => sorry
+  | globally f _ | «finally» f _ => sorry
+
+lemma eq_final_nrm_final : ∀ w : List α, ∀ f : φ α, final (nrm f) w = final f w := by
+  intro w f
+  induction f generalizing w with
+  | true | false =>
+    simp only [nrm]
+  | not t ht =>
+    simp only [nrm]
+    split
+    . rename_i h
+      rw [h] at ht
+      rw [← eq_final_neg_neg_final w t]
+      rw [← ht, ← eq_verdict_δ_sem_cons_bot w, ← eq_verdict_δ_sem_cons_top w]
+      simp
+    . rename_i h
+      rw [h] at ht
+      rw [← eq_final_neg_neg_final w t]
+      rw [← ht, ← eq_verdict_δ_sem_cons_bot w, ← eq_verdict_δ_sem_cons_top w]
+      simp
+    . rw [← eq_final_neg_neg_final w (nrm t)]
+      rw [← eq_final_neg_neg_final w t]
+      rw [ht]
+  | ap a => simp [nrm]
+  | next f hf | weak_next f hf =>
+    simp [nrm]
+    cases w with
+    | nil => simp only [final, ε]
+    | cons a t => simp only [final, δ, hf]
+  | and l r hl hr | or l r hl hr =>
+    cases w with
+    | nil =>
+      simp only [final, ε] ; rw [← eq_esp_nrm_eps l] ; simp only [*, ε, eq_esp_nrm_eps]
+    | cons h t =>
+      simp only [final, δ, nrm] ; sorry
+  | «until» l r hl hr | release l r hl hr =>
+    cases w with
+    | nil =>
+      simp [final] ; rw [eq_esp_nrm_eps]
+    | cons h t =>
+      simp only [final, nrm, δ] ; sorry
+  | globally f hf | «finally» f hf => sorry
+
+lemma eq_final_and_and_final (f g : φ α) (w : List α) : final (f ⋀ g) w = final f w ⊓ final g w := by
+  induction w generalizing f g with
+  | nil => simp only [final, ε]
+  | cons a w ih => simp only [final, δ, eq_final_nrm_final, ih]
+
+lemma eq_final_or_or_final (f g : φ α) (w : List α) : final (f ⋁ g) w = final f w ⊔ final g w := by
+  induction w generalizing f g with
+  | nil => simp only [final, ε]
+  | cons a w ih => simp only [final, δ, eq_final_nrm_final, ih]
+
+theorem eq_verdict_δ_sem : ∀ (w : List α) (f : φ α), ⟦ w ⊨ f ⟧ = final f w := by
+  intro w f
+  induction f generalizing w with
+  | true => simp only [sem, eq_verdict_δ_sem_cons_top w]
+  | false => simp only [sem, eq_verdict_δ_sem_cons_bot w]
+  | not f hf => simp [hf, eq_final_neg_neg_final w]
+  | ap a =>
+    cases w with
+    | nil => simp only [eq_verdict_δ_sem_nil]
+    | cons h t =>
+      simp only [sem, lookup, final, δ]
+      by_cases ha : h = a <;> simp [ha, eq_verdict_δ_sem_cons_top t, eq_verdict_δ_sem_cons_bot t]
+  | next f hf | weak_next f hf =>
+    cases w with
+    | nil => simp [sem, final, ε]
+    | cons h t => simp [sem, final, δ, hf t]
+  | and l r hl hr | or l r hl hr  =>
+    simp [sem, hl, hr, eq_final_and_and_final, eq_final_or_or_final]
+  | «until» l r hl hr | release l r hl hr =>
+    induction w generalizing l r with
+    | nil => simp [sem, final, ε]
+    | cons h t ht =>
+      have red_step : ∀ f: φ α, final (δ h f).2 t = final f (h :: t) := by simp [final]
+      simp only [final, δ, eq_final_and_and_final, eq_final_or_or_final]
+      sorry
+  | globally f hf | «finally» f hf =>
+    cases w with
+    | nil => simp [sem, final, ε]
+    | cons h t => sorry
 
 /-
   type: ∏ (s : S), ∏ (i : I(s)), Σ (o : O(s, i)), S
@@ -155,6 +293,10 @@ structure MealyNoDep.Bisim {I : Type} {O : Type} (m₁ m₂ : MealyNoDep I O) wh
   init_ok : R m₁.init m₂.init
   app_ok  : ∀ s₁ s₂, R s₁ s₂ → ∀ i,
               (m₁.app s₁ i).1 = (m₂.app s₂ i).1 ∧ R (m₁.app s₁ i).2 (m₂.app s₂ i).2
+
+-- https://dl.acm.org/doi/10.1145/2455.2460
+-- Given two state t1: m1 and t2: m2 with t1 ≈ t2 iff (forall psi, t1 ⊨ psi iff t2 ⊨ psi)
+-- Hennessy–Milner theorem
 
 -- `m₁ ≈ m₂` is a bisimulation between `m₁` and `m₂`.
 instance MealyNoDepEquiv {I : Type} {O : Type} : HasEquiv (MealyNoDep I O) := ⟨MealyNoDep.Bisim⟩
@@ -217,6 +359,17 @@ structure MealyInv
       Post i (m.app s i).1 ∧
       Inv (m.app s i).2
 
+
+-- We would like to prove that  ⟦ w ⊨ INV and phi ⟧ -> final (MealyInv (MealyNo Dep phi w) Inv True True
+
+-- An Ashcroft invariant is an assertion about the global state of a concurrent system that remains true throughout every possible execution.
+-- Initially: `I` holds in every initial state.
+-- Preservation: Every transition preserves `I`
+-- forall s, s', I(s) ∧ (s → s') → I(s')
+-- Init => Inv
+-- Inv(s) and Next(s,s') => Inv(s')
+-- Consequence: Spec => □ Inv
+
 namespace MealyCategory
 open CategoryTheory
 
@@ -239,8 +392,8 @@ structure MealyNoDep.Hom {I : Type} {O : Type} (X Y : MealyNoDep I O) where
 def MealyNoDep.Id  {I : Type} {O : Type} (X : MealyNoDep I O) : MealyNoDep.Hom X X  where
   map := id
   map_init := by rfl
-  map_out := by grind
-  map_next := by grind
+  map_out := by intros; simp
+  map_next := by intros; simp
 
 instance MealyNoDepCat (I : Type) (O : Type) : CategoryTheory.Category (MealyNoDep I O) where
   Hom X Y := MealyNoDep.Hom X Y
@@ -334,6 +487,8 @@ def MealyNoDepProfunctor {I1 I2 : Type} {O1 O2 : Type} (f : I1 → I2) (g : O2 �
     }
 
 /-
+  uncurried: MealyF: S × I → O × S
+  curried MealyF S : I → O × S
   Mealy machines are coalgebras of the endofunctor `μF S = I → O × S`
 -/
 
@@ -354,3 +509,6 @@ def MealyNoDep.Hom.toCoalgHom {I O : Type} {X Y : MealyNoDep I O}
     ext s
     funext i
     exact Prod.ext (h.map_out s i).symm (h.map_next s i).symm
+
+-- funext :: forall x, (f x = g x) -> f = g
+-- Prod.ext  (a, b) (c, d) = (a = c) ∧ (b = d)

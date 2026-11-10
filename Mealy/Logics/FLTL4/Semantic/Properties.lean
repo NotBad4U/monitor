@@ -6,6 +6,8 @@ import Mealy.TruthDomain.B4
 import Mealy.Logics.FLTL4.Syntax
 import Mealy.Logics.FLTL4.Semantic.Denotation
 
+open FLTL4
+
 variable {α} [DecidableEq α]
 
 /--

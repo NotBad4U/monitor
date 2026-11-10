@@ -5,6 +5,8 @@ import Mealy.TruthDomain.B4
 
 import Mealy.Logics.FLTL4.Syntax
 
+namespace FLTL4
+
 variable {α} [DecidableEq α]
 
 /--
@@ -142,7 +144,7 @@ lemma sem_not_eq_compl_sem (w : List α) (f : φ α) : ⟦ w ⊨ ~ f ⟧ = (⟦ 
   | _ => simp [sem]
 
 /--
-  Or, And commutativity
+  Or commutativity
 -/
 @[simp]
 lemma or_commutative : ∀ (w : List α), ∀ (a b : φ α), ⟦ w ⊨ a ⋁ b ⟧ = ⟦ w ⊨ b ⋁ a ⟧ := by
@@ -150,6 +152,9 @@ lemma or_commutative : ∀ (w : List α), ∀ (a b : φ α), ⟦ w ⊨ a ⋁ b �
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.commut_cup ..
 
+/--
+  And commutativity
+-/
 @[simp]
 lemma and_commutativity : ∀ (w : List α), ∀ (a b : φ α), ⟦ w ⊨ a ⋀ b ⟧ = ⟦ w ⊨ b ⋀ a ⟧ := by
   intro w a b
@@ -157,7 +162,7 @@ lemma and_commutativity : ∀ (w : List α), ∀ (a b : φ α), ⟦ w ⊨ a ⋀ 
   exact BooleanLatticeProperties_𝔹₄.commut_cap ..
 
 /--
-  Or, And associativity
+  Or associativity
 -/
 @[simp]
 lemma or_associativity :
@@ -166,6 +171,9 @@ lemma or_associativity :
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.assoc_cup ..
 
+/--
+  And associativity
+-/
 @[simp]
 lemma and_associativity :
     ∀ (w : List α), ∀ (a b c : φ α), ⟦ w ⊨ a ⋀ (b ⋀ c) ⟧ = ⟦ w ⊨ (a ⋀ b) ⋀ c ⟧ := by
@@ -174,7 +182,7 @@ lemma and_associativity :
   exact BooleanLatticeProperties_𝔹₄.assoc_cap ..
 
 /--
-  Or/And, And/Or distributivity
+  Or/And distributivity
 -/
 @[simp]
 lemma or_and_distributivity :
@@ -183,6 +191,9 @@ lemma or_and_distributivity :
   simp [sem]
   exact BooleanLatticeProperties_𝔹₄.distr_cup ..
 
+/--
+  And/Or distributivity
+-/
 @[simp]
 lemma and_or_distributivity :
     ∀ (w : List α), ∀ (a b c : φ α), ⟦ w ⊨ a ⋀ (b ⋁ c) ⟧ = ⟦ w ⊨ (a ⋀ b) ⋁ (a ⋀ c) ⟧ := by
@@ -191,14 +202,38 @@ lemma and_or_distributivity :
   exact BooleanLatticeProperties_𝔹₄.distr_cap ..
 
 /--
-  Semantic equivalences for constructions 𝑭 and 𝑮
+  Semantic equivalences for construction 𝑭
 -/
 lemma eq_sem_F_with_U (w : List α) (f : φ α) : ⟦ w ⊨ 𝑭 f ⟧ = ⟦ w ⊨ .true 𝑼 f ⟧ := by
   simp only [sem]
   simp [sup_comm]
 
+/--
+  Semantic equivalences for construction 𝑮
+-/
 lemma eq_sem_G_with_R (w : List α) (f : φ α) : ⟦ w ⊨ 𝑮 f ⟧ = ⟦ w ⊨ .false 𝑹 f ⟧ := by
   simp only [sem]
   simp [inf_comm]
 
-theorem simplify_equiv (w : List α) (f : φ α) : ⟦ w ⊨ simplify f ⟧ = ⟦ w ⊨ f ⟧ := by sorry
+/-
+  Semantic is the same with or without normalisation
+-/
+theorem norm_equiv (w : List α) (f : φ α) : ⟦ w ⊨ nrm f ⟧ = ⟦ w ⊨ f ⟧ := by
+  induction f generalizing w with
+  | true | false | ap _ =>
+    simp [nrm]
+  | not f hf =>
+    simp [nrm]
+    split <;> simp [sem, ← hf]  <;> simp [*, sem]       -- match/with
+  | or l r hl hr | and l r hl hr =>
+    simp [nrm, sem]
+    split <;> simp [sem, ← hl, ← hr] <;> simp [*, sem]  -- match/with
+    split <;> simp [sem, ← hl, ← hr]; simp [*]          -- if/then/else
+  | next f hf | weak_next f hf =>
+    simp [nrm, sem, hf]
+  | «until» l r hl hr | release l r hl hr =>
+    simp [nrm, sem, hl, hr]
+  | globally f hf | «finally» f hf =>
+    simp [nrm, sem, *]
+
+end FLTL4
