@@ -56,43 +56,37 @@ private def exampleNatural : φ Nat := (𝑮 (⟨1⟩ 𝑼 ⟨2⟩)) ⋀ (𝑮 (
 
 -- Normalisation
 
-def simplify  : φ α → φ α
+def FLTL4.nrm : φ α → φ α
   | .true => .true
   | .false => .false
   | .ap a => .ap a
   | .not f =>
-      match simplify f with
+      match nrm f with
       | .true => .false
       | .false => .true
       | f => .not f
   | .and l r =>
-      match simplify l, simplify r with
+      match nrm l, nrm r with
       | .true, r => r
-      | l, .true => l
       | .false, _ => .false
+      | l, .true => l
       | _, .false => .false
       | l, r => if l = r then l else .and l r
   | .or l r =>
-      match simplify l, simplify r with
+      match nrm l, nrm r with
       | .false, r => r
-      | l, .false => l
       | .true, _ => .true
+      | l, .false => l
       | _, .true => .true
       | l, r => if l = r then l else .or l r
-  | .next e => .next (simplify e)
-  | .weak_next e => .weak_next (simplify e)
-  | .until l r => .until (simplify l) (simplify r)
-  | .release l r => .release (simplify l) (simplify r)
-  | .finally e => .finally (simplify e)
-  | .globally e => .globally (simplify e)
+  | .next e => .next (nrm e)
+  | .weak_next e => .weak_next (nrm e)
+  | .until l r => .until (nrm l) (nrm r)
+  | .release l r => .release (nrm l) (nrm r)
+  | .finally e => .finally (nrm e)
+  | .globally e => .globally (nrm e)
 
-#eval simplify (⟨2⟩ ⋀ (.true ⋀ ⟨2⟩))
+-- #eval nrm (⟨2⟩ ⋀ (.true ⋀ ⟨2⟩))
 
-theorem simplify_simplify_eq_simplify : ∀ e: φ α,simplify (simplify e) = simplify e := by
-  intro e; induction e <;> grind [simplify]
-
--- def norms : φ α → φ α := fun e =>
---     let e' := norm e
---     if e' = e
---     then e
---     else norms e'
+theorem nrm_nrm_eq_nrm : ∀ e: φ α,FLTL4.nrm (FLTL4.nrm e) = FLTL4.nrm e := by
+  intro e; induction e <;> grind [FLTL4.nrm]

@@ -21,7 +21,7 @@ lemma star_trans (a b : A): a ⟶* b → forall c, b ⟶* c → a ⟶* c := by
   intro h1 c h2
   induction h1 with
   | refl => exact h2
-  |  step x y z hr _ ih =>
+  | step x y z hr _ ih =>
     exact star.step x y c hr (ih h2)
 
 -- One or several transitions: transitive closure of R.
