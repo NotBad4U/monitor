@@ -1,10 +1,11 @@
 import Mathlib.Tactic.FinCases
 import Init.Data.Vector.Basic
 
-universe u v in
-variable (α : Type u) [DecidableEq α] in
-variable (τ : Type v) [LE τ] in
-structure TimedTrace (n:Nat) where
+universe u v
+variable (α:Type u) [DecidableEq α]
+variable (τ:Type u) [LE τ]
+
+structure TimedTrace (n:ℕ) where
   mk ::
   seq : Vector (α × τ) n
   -- Explore why `_[_]` is more adapted for proof than `_.get _`.
@@ -19,17 +20,22 @@ def TimedTrace.ofList {α} {τ} [LE τ] (l : List (α × τ))
     intro i j hij
     exact List.pairwise_iff_getElem.mp h i j i.isLt j.isLt (Fin.lt_def.mp hij)
 
+-- lenght
+
+def TimedTrace.length {α} {τ} [LE τ] {n:ℕ} (t:TimedTrace α τ (n + 1)) : ℕ :=
+  t.seq.size
+
 -- last
 
-def TimedTrace.last {α} {τ} [LE τ] {n:Nat} (t:TimedTrace α τ (n + 1)) : (α × τ) :=
+def TimedTrace.last {α} {τ} [LE τ] {n:ℕ} (t:TimedTrace α τ (n + 1)) : (α × τ) :=
   t.seq.back
 
-def TimedTrace.last? {α} {τ} [LE τ] {n:Nat} (t:TimedTrace α τ n) : Option (α × τ) :=
+def TimedTrace.last? {α} {τ} [LE τ] {n:ℕ} (t:TimedTrace α τ n) : Option (α × τ) :=
   t.seq.back?
 
 -- add
 
-def TimedTrace.add {α} {τ} [LE τ] [DecidableEq α] {n : Nat} (t : TimedTrace α τ n) (a : α × τ)
+def TimedTrace.add {α} {τ} [LE τ] {n : ℕ} (t : TimedTrace α τ n) (a : α × τ)
     (h : ∀ b: Fin n, t.seq[b].2 ≤ a.2) : TimedTrace α τ (n + 1) where
   seq := t.seq.push a
   wff_seq := by
@@ -43,12 +49,17 @@ def TimedTrace.add {α} {τ} [LE τ] [DecidableEq α] {n : Nat} (t : TimedTrace 
 
 -- get_at
 
-def TimedTrace.get_at {α} {τ} [LE τ] {n:Nat} (t:TimedTrace α τ n) (i:Fin n) : (α × τ) :=
+def TimedTrace.get_at {α} {τ} [LE τ] {n:ℕ} (t:TimedTrace α τ n) (i:Fin n) : (α × τ) :=
   t.seq.get i
+
+-- get_at?
+
+def TimedTrace.get_at? {α} {τ} [LE τ] {n:ℕ} (t:TimedTrace α τ n) (i:ℕ) : Option (α × τ) :=
+  t.seq[i]?
 
 -- drop_off
 
-def TimedTrace.drop_off {α} {τ} [LE τ] {n : Nat} (t : TimedTrace α τ n) (j : Fin n) : TimedTrace α τ (n - j.val) where
+def TimedTrace.drop_off {α} {τ} [LE τ] {n : ℕ} (t : TimedTrace α τ n) (j : Fin n) : TimedTrace α τ (n - j.val) where
   seq := t.seq.drop j
   wff_seq := by
     intro a b hab
@@ -59,17 +70,17 @@ def TimedTrace.drop_off {α} {τ} [LE τ] {n : Nat} (t : TimedTrace α τ n) (j 
 
 namespace Examples
 
-def ex1 : TimedTrace String Nat 2 :=
+def ex1 : TimedTrace String ℕ 2 :=
   TimedTrace.ofList [("a",1), ("a",2)] (by simp)
 
-def ex2 : TimedTrace String Nat 3 :=
+def ex2 : TimedTrace String ℕ 3 :=
   ex1.add ("a",2) (by simp [ex1, TimedTrace.ofList])
 
 end Examples
 
 -- Properties
 
-theorem add_last {α} [DecidableEq α] {τ} [LE τ] {n : Nat} :
+theorem TimedTrace.add_last {α} {τ} [LE τ] {n : ℕ} :
   ∀ t : TimedTrace α τ n, ∀ a : (α × τ), (h : ∀ b: Fin n, t.seq[b].2 ≤ a.2) →
   (t.add a (by exact h)).last = a := by
   intro t x
